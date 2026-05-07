@@ -77,20 +77,29 @@ export class MainView extends Component {
             }
 
             if(parseInt(result.data.promptAi.id) === 0){
-                result.data.promptAi.prompt_ai = `Agis comme un assistant pédagogique bienveillant.
-Voici un texte écrit par un élève :
-<<<
-PLACEHOLDER_STUDENT_TEXT
->>>
-
-Ton objectif est d'identifier les erreurs pour aider l'élève à progresser.
-Analyse le texte en vérifiant STRICTEMENT les 2 critères suivantes :
-
+                result.data.promptAi.prompt_ai = `Tu es un extracteur JSON strict. Analyse le texte et génère un JSON respectant EXACTEMENT ces clés :
+1. "annotatedText" : texte avec balises [[e1:mot]].
+2. "generalFeedback" : message d'encouragement.
+3. "corrections" : tableau d'objets avec EXACTEMENT ces clés :
+   - "id" : (ex: "e1")
+   - "suggestion" : (le mot corrigé)
+   - "explanation" : (pourquoi c'est une erreur)
+   - "strategy" : (astuce pour l'élève)
+   - "criterion" : (l'ID du critère : orthographeusage ou orthographegrammatical)
+4. Tu dois d'abord identifier les erreurs dans le texte et les marquer avec [[eX:mot]].
+5. Chaque balise [[eX:mot]] dans le champ "annotatedText" doit avoir une entrée correspondante UNIQUE dans le tableau "corrections".
+6. L'ID "eX" dans le tableau doit correspondre exactement à l'ID visible dans le texte.
+ 
+REMARQUE : N'utilise jamais l'ID (e1, e2) comme nom de clé. Utilise "id": "e1".
+ 
+CONSIGNE : Retourne UNIQUEMENT l'objet JSON brut. Pas de texte avant, pas de texte après, pas de balises \`\`\`json.
+ 
+TONALITÉ : Le champ 'generalFeedback' doit être bienveillant et encourageant.
+ 
+CRITÈRES À UTILISER (ID) :
 <<<
 PLACEHOLDER_CRITERIA_LIST
->>>
-
-Format de réponse attendu est un objet JSON et son structure est passé comme paramètre dans la requête.`;
+>>>`;
             }
 
             that.setState({dropdownList: dropdownList, annotation: result.data.annotation, promptAi: result.data.promptAi});         

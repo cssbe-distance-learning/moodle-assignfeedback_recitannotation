@@ -60,9 +60,6 @@ export class ModalAskAi extends Component{
             return "";
         } 
 
-        // do not replace student text here to avoid loosing HTML tags
-        // data.prompt = data.prompt.replace("PLACEHOLDER_STUDENT_TEXT", AnnotationView.refAnnotation.current.innerText);
-
         let tmp = [];
         for(let item of criteriaList){
             let crit = JsNx.getItem(this.props.criteriaList, 'id', item, null);
@@ -80,8 +77,7 @@ export class ModalAskAi extends Component{
             return;
         }
         
-        //prompt = prompt.replace("PLACEHOLDER_STUDENT_TEXT", AnnotationView.getHtml());
-
+        // get student text here to avoid loosing HTML tags
         let studentText = `Analyse ce texte d'élève et génère le JSON selon le schéma : \n Texte : \n ${AnnotationView.getHtml()}`;
 
         let payload = {
