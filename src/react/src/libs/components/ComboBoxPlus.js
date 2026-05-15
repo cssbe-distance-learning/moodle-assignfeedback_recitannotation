@@ -57,7 +57,7 @@ export class ComboBoxPlus extends Component {
         }
 
         let main = 
-            <Select ref={this.ref} {...spreadAttr} onChange={this.onChange} value={selectedItem} placeholder={this.props.placeholder}>
+            <Select menuPlacement="auto"  ref={this.ref} {...spreadAttr} onChange={this.onChange} value={selectedItem} placeholder={this.props.placeholder}>
             </Select>;            
         return (main);
     }   
