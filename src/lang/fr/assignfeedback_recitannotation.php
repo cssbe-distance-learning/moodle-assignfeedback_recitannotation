@@ -85,3 +85,9 @@ $string['input'] = "Entrée";
 $string['output'] = "Sortie";
 $string['result'] = "Résultat";
 $string['apply'] = "Appliquer";
+
+$string['privacy:metadata:assignfeedback_recitannotation'] = 'Rétroaction annotée rédigée par un enseignant sur la remise d\'un élève.';
+$string['privacy:metadata:assignfeedback_recitannotation:submission'] = 'L\'identifiant de la remise à laquelle cette annotation est associée.';
+$string['privacy:metadata:assignfeedback_recitannotation:ownerid'] = 'L\'identifiant de l\'enseignant qui a rédigé l\'annotation.';
+$string['privacy:metadata:assignfeedback_recitannotation:annotation'] = 'Le contenu HTML annoté de la remise de l\'élève.';
+$string['privacy:metadata:assignfeedback_recitannotation:lastupdate'] = 'L\'horodatage de la dernière modification apportée à l\'annotation.';

@@ -87,10 +87,12 @@ abstract class APersistCtrl
     
     public function sql_find_in_set(string $tofind, string $field): string {
         global $CFG;
+        // $tofind is embedded literally; callers must pass only safe, already-validated values.
+        $escaped = str_replace("'", "''", $tofind);
         if ($CFG->dbtype == 'pgsql'){
-            return "'$tofind' = ANY (string_to_array($field,','))";
+            return "'{$escaped}' = ANY (string_to_array($field,','))";
         }else{
-            return "FIND_IN_SET('$tofind', $field)";
+            return "FIND_IN_SET('{$escaped}', $field)";
         }
     }
     

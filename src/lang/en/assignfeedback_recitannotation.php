@@ -85,3 +85,9 @@ $string['input'] = "Input";
 $string['output'] = "Output";
 $string['result'] = "Result";
 $string['apply'] = "Apply";
+
+$string['privacy:metadata:assignfeedback_recitannotation'] = 'Annotated feedback written by a teacher on a student\'s submission.';
+$string['privacy:metadata:assignfeedback_recitannotation:submission'] = 'The ID of the submission this annotation belongs to.';
+$string['privacy:metadata:assignfeedback_recitannotation:ownerid'] = 'The ID of the teacher who wrote the annotation.';
+$string['privacy:metadata:assignfeedback_recitannotation:annotation'] = 'The annotated HTML content of the student\'s submission.';
+$string['privacy:metadata:assignfeedback_recitannotation:lastupdate'] = 'The timestamp of the last modification to the annotation.';

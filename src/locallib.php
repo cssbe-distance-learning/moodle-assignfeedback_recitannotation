@@ -168,9 +168,10 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
                 continue;
             }
 
-            $html .= "<span class='badge-criterion' style='background-color: {$criterion->backgroundcolor}; border-color: {$criterion->backgroundcolor};'>";
-            $html .= "<span class='badge-criterion-name'>{$criterion->description}</span>";
-            $html .= "<span class='badge-criterion-counter'>". $data->occurrences->$attr ."</span>";
+            $bgcolor = s($criterion->backgroundcolor);
+            $html .= "<span class='badge-criterion' style='background-color: {$bgcolor}; border-color: {$bgcolor};'>";
+            $html .= "<span class='badge-criterion-name'>" . s($criterion->description) . "</span>";
+            $html .= "<span class='badge-criterion-counter'>" . s((string)$data->occurrences->$attr) . "</span>";
             $html .= "</span>";
         }
         

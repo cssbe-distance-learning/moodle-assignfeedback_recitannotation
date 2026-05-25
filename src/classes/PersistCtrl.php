@@ -96,8 +96,14 @@ class PersistCtrl extends MoodlePersistCtrl
         return $result;
     }
 
-    public function saveAnnotation($data){
-        try{	
+    public function saveAnnotation($data, $assignment = 0){
+        try{
+            if($data->id != 0 && $assignment > 0){
+                if(!$this->annotationBelongsToAssignment($data->id, $assignment)){
+                    throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
+                }
+            }
+
             $record = new stdClass();
             $record->submission = $data->submission;
             $record->ownerid = $this->signedUser->id;
@@ -121,14 +127,26 @@ class PersistCtrl extends MoodlePersistCtrl
         }
     }
 
-    public function deleteAnnotation($id){
+    public function deleteAnnotation($id, $assignment = 0){
         try{
+            if($assignment > 0 && !$this->annotationBelongsToAssignment($id, $assignment)){
+                throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
+            }
+
             $this->mysqlConn->delete_records("assignfeedback_recitannotation", ['id' => $id]);
             return true;
         }
         catch(Exception $ex){
             throw $ex;
         }
+    }
+
+    protected function annotationBelongsToAssignment($annotationId, $assignment){
+        $query = "SELECT t1.id FROM {assignfeedback_recitannotation} t1
+                  INNER JOIN {assign_submission} t2 ON t1.submission = t2.id
+                  WHERE t1.id = ? AND t2.assignment = ?";
+        $records = $this->getRecordsSQL($query, [$annotationId, $assignment]);
+        return !empty($records);
     }
 
     public function deletePluginData($assignment){
@@ -180,7 +198,7 @@ class PersistCtrl extends MoodlePersistCtrl
     }
 
     public function saveCriterion($data){
-        try{	
+        try{
             $record = new TableCriterion();
             $record->assignment = $data->assignment;
             $record->name = $data->name;
@@ -196,6 +214,11 @@ class PersistCtrl extends MoodlePersistCtrl
                 }
             }
             else{
+                // Verify the criterion belongs to the authorized assignment before updating.
+                $existing = $this->mysqlConn->get_record('assignfeedback_recitannot_crit', ['id' => $data->id], '*', MUST_EXIST);
+                if((int)$existing->assignment !== (int)$data->assignment){
+                    throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
+                }
                 $record->id = $data->id;
                 $this->mysqlConn->update_record("assignfeedback_recitannot_crit", $record);
             }
@@ -226,17 +249,13 @@ class PersistCtrl extends MoodlePersistCtrl
         return $result;
     }
 
-    public function deleteCriterion($id){
+    public function deleteCriterion($id, $assignment = 0){
         try{
-            /*$query = "select * from {assignfeedback_recitannot_comment} 
-                where criterionid = ?";
-
-            $result = $this->getRecordsSQL($query, array($id));
-
-            if(count($result) > 0){
-                throw new Exception(get_string('foreign_key', 'assignfeedback_recitannotation'));
-            }*/            
             $current = $this->mysqlConn->get_record('assignfeedback_recitannot_crit', ['id' => $id], '*', MUST_EXIST);
+
+            if($assignment > 0 && (int)$current->assignment !== (int)$assignment){
+                throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
+            }
 
             if($current){
                 $this->mysqlConn->delete_records("assignfeedback_recitannot_comment", ['criterionid' => $id]);
@@ -284,8 +303,12 @@ class PersistCtrl extends MoodlePersistCtrl
         return $result;
     }
 
-    public function deleteComment($id){
+    public function deleteComment($id, $assignment = 0){
         try{
+            if($assignment > 0 && !$this->commentBelongsToAssignment($id, $assignment)){
+                throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
+            }
+
             $this->mysqlConn->delete_records("assignfeedback_recitannot_comment", ['id' => $id]);
             return true;
         }
@@ -294,8 +317,8 @@ class PersistCtrl extends MoodlePersistCtrl
         }
     }
 
-    public function saveComment($data){
-        try{	
+    public function saveComment($data, $assignment = 0){
+        try{
             $record = new TableComment();
             $record->criterionid = $data->criterionid;
             $record->comment = $data->comment;
@@ -304,9 +327,11 @@ class PersistCtrl extends MoodlePersistCtrl
                 if (!$this->mysqlConn->record_exists('assignfeedback_recitannot_comment', ['criterionid' => $record->criterionid, 'comment' => $record->comment])) {
                     $this->mysqlConn->insert_record("assignfeedback_recitannot_comment", $record);
                 }
-                
             }
             else{
+                if($assignment > 0 && !$this->commentBelongsToAssignment($data->id, $assignment)){
+                    throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
+                }
                 $record->id = $data->id;
                 $this->mysqlConn->update_record("assignfeedback_recitannot_comment", $record);
             }
@@ -316,6 +341,14 @@ class PersistCtrl extends MoodlePersistCtrl
         catch(\Exception $ex){
             throw $ex;
         }
+    }
+
+    protected function commentBelongsToAssignment($commentId, $assignment){
+        $query = "SELECT t1.id FROM {assignfeedback_recitannot_comment} t1
+                  INNER JOIN {assignfeedback_recitannot_crit} t2 ON t1.criterionid = t2.id
+                  WHERE t1.id = ? AND t2.assignment = ?";
+        $records = $this->getRecordsSQL($query, [$commentId, $assignment]);
+        return !empty($records);
     }
 
     public function importCriteriaList($data){
@@ -370,9 +403,13 @@ class PersistCtrl extends MoodlePersistCtrl
         }
     }
 
-    public function changeCriterionSortOrder($id, $direction){
+    public function changeCriterionSortOrder($id, $direction, $assignment = 0){
         // 1. Get current item
         $current = $this->mysqlConn->get_record('assignfeedback_recitannot_crit', ['id' => $id], '*', MUST_EXIST);
+
+        if($assignment > 0 && (int)$current->assignment !== (int)$assignment){
+            throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
+        }
 
         // 2. Determine target sortorder
         $targetSort = ($direction === 'up') ? $current->sortorder - 1 : $current->sortorder + 1;

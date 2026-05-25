@@ -37,6 +37,25 @@ class WebApi extends MoodleApi
         parent::__construct($DB, $COURSE, $USER);
         $this->ctrl = PersistCtrl::getInstance($DB, $USER);
     }
+
+    protected function getAllowedServices(): array {
+        return [
+            'getAnnotationFormKit',
+            'deleteAnnotation',
+            'saveCriterion',
+            'deleteCriterion',
+            'deleteAllCriteria',
+            'saveAnnotation',
+            'saveComment',
+            'deleteComment',
+            'exportCriteriaList',
+            'importCriteriaList',
+            'changeCriterionSortOrder',
+            'callAzureAI',
+            'savePromptAi',
+        ];
+    }
+
     /**
      * $level [a = admin | s = student]
      */
@@ -84,7 +103,7 @@ class WebApi extends MoodleApi
 
             $this->canUserAccess('a', $assignment);
 
-            $this->ctrl->deleteAnnotation($id);
+            $this->ctrl->deleteAnnotation($id, $assignment);
             return new WebApiResult(true);
         }
         catch(Exception $ex){
@@ -93,8 +112,16 @@ class WebApi extends MoodleApi
     }
 
     public function saveCriterion($request){
-        try{            
+        try{
             $data = json_decode(json_encode($request['data']), FALSE);
+
+            $data->id              = clean_param($data->id,              PARAM_INT);
+            $data->assignment      = clean_param($data->assignment,      PARAM_INT);
+            $data->name            = clean_param($data->name,            PARAM_TEXT);
+            $data->description     = clean_param($data->description,     PARAM_TEXT);
+            $data->backgroundcolor = clean_param($data->backgroundcolor, PARAM_TEXT);
+            $data->sortorder       = clean_param($data->sortorder,       PARAM_INT);
+            $data->instruction_ai  = clean_param($data->instruction_ai,  PARAM_RAW);
 
             $this->canUserAccess('a', $data->assignment);
 
@@ -114,7 +141,7 @@ class WebApi extends MoodleApi
 
             $this->canUserAccess('a', $assignment);
 
-            $this->ctrl->deleteCriterion($id);
+            $this->ctrl->deleteCriterion($id, $assignment);
             return new WebApiResult(true);
         }
         catch(Exception $ex){
@@ -137,13 +164,22 @@ class WebApi extends MoodleApi
     }
 
     public function saveAnnotation($request){
-        try{            
+        try{
             $data = json_decode(json_encode($request['data']), FALSE);
             $assignment = clean_param($request['assignment'], PARAM_INT);
 
+            $data->id         = clean_param($data->id,         PARAM_INT);
+            $data->submission = clean_param($data->submission, PARAM_INT);
+            $data->annotation = clean_param($data->annotation, PARAM_RAW); // intentional HTML: teacher-authored annotation markup
+            if(is_object($data->occurrences)){
+                foreach($data->occurrences as $key => $val){
+                    $data->occurrences->$key = (int)$val;
+                }
+            }
+
             $this->canUserAccess('a', $assignment);
 
-            $result = $this->ctrl->saveAnnotation($data);
+            $result = $this->ctrl->saveAnnotation($data, $assignment);
 
             return new WebApiResult(true, $result);
         }
@@ -157,9 +193,13 @@ class WebApi extends MoodleApi
             $data = json_decode(json_encode($request['data']), FALSE);
             $assignment = clean_param($request['assignment'], PARAM_INT);
 
+            $data->id          = clean_param($data->id,          PARAM_INT);
+            $data->criterionid = clean_param($data->criterionid, PARAM_INT);
+            $data->comment     = clean_param($data->comment,     PARAM_TEXT);
+
             $this->canUserAccess('a', $assignment);
 
-            $result = $this->ctrl->saveComment($data);
+            $result = $this->ctrl->saveComment($data, $assignment);
 
             return new WebApiResult(true, $result);
         }
@@ -175,7 +215,7 @@ class WebApi extends MoodleApi
 
             $this->canUserAccess('a', $assignment);
 
-            $this->ctrl->deleteComment($id);
+            $this->ctrl->deleteComment($id, $assignment);
             return new WebApiResult(true);
         }
         catch(Exception $ex){
@@ -231,14 +271,14 @@ class WebApi extends MoodleApi
             }
            
             $file = new stdClass();
-            $file->filename = sys_get_temp_dir() . '/export-criteria-list-' . time() . '.xml';
+            $file->filename = tempnam(sys_get_temp_dir(), 'recitannot_export_') . ".xml";
             $file->charset = 'UTF-8';
             $doc->save($file->filename);
 
             return new WebApiResult(true, $file, "", 'application/xml');
         }
         catch(Exception $ex){
-            throw $ex;
+            return new WebApiResult(false, null, $ex->GetMessage());
         }
     }
 
@@ -246,8 +286,11 @@ class WebApi extends MoodleApi
         try{
             $data = json_decode(json_encode($request['data']), FALSE);
 
+            $data->assignment  = clean_param($data->assignment,  PARAM_INT);
+            $data->fileContent = clean_param($data->fileContent, PARAM_RAW);
+
             $this->canUserAccess('a', $data->assignment);
-            
+
             $this->ctrl->importCriteriaList($data);
             return new WebApiResult(true);
         }
@@ -257,14 +300,14 @@ class WebApi extends MoodleApi
     }
     
     public function changeCriterionSortOrder($request){
-        try{            
+        try{
             $id = clean_param($request['id'], PARAM_INT);
             $direction = clean_param($request['direction'], PARAM_TEXT);
             $assignment = clean_param($request['assignment'], PARAM_INT);
 
             $this->canUserAccess('a', $assignment);
 
-            $result = $this->ctrl->changeCriterionSortOrder($id, $direction);
+            $result = $this->ctrl->changeCriterionSortOrder($id, $direction, $assignment);
             return new WebApiResult(true, $result);
         }
         catch(Exception $ex){
@@ -317,6 +360,10 @@ class WebApi extends MoodleApi
     public function savePromptAi($request){
         try{
             $data = json_decode(json_encode($request['data']), FALSE);
+
+            $data->id         = clean_param($data->id,         PARAM_INT);
+            $data->assignment = clean_param($data->assignment, PARAM_INT);
+            $data->prompt_ai  = clean_param($data->prompt_ai,  PARAM_RAW);
 
             $this->canUserAccess('a', $data->assignment);
 

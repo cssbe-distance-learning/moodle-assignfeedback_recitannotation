@@ -1,3 +1,4 @@
 src/react/.cache
 src/react/node_modules
 *.zip
+.claude/settings.local.json

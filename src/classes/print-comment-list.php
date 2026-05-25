@@ -100,8 +100,8 @@ $pageTitle = sprintf("%s: %s", get_string('pluginname', 'assignfeedback_recitann
                             foreach($commentList as $item){
                         ?>
                             <tr>
-                                <td><?php echo $item->description; ?></td>    
-                                <td><?php echo $item->comment; ?></td>
+                                <td><?php echo s($item->description); ?></td>
+                                <td><?php echo s($item->comment); ?></td>
                             </tr>
                         <?php } ?>
                     </tbody>

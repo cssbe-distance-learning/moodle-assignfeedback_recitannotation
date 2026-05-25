@@ -117,13 +117,24 @@ abstract class AWebApi
         return true;
     }
 
+    protected function getAllowedServices(): array {
+        return [];
+    }
+
     public function processRequest(){
         if(!$this->preProcessRequest()){
             return;
         }
 
         $serviceWanted = clean_param($this->request['service'], PARAM_TEXT);
-        $result = $this->$serviceWanted($this->request);	
+
+        $allowed = $this->getAllowedServices();
+        if (!in_array($serviceWanted, $allowed, true)) {
+            $this->lastResult = new WebApiResult(false, null, 'servicenotfound');
+            return;
+        }
+
+        $result = $this->$serviceWanted($this->request);
 
         $this->lastResult = $result;
     }
@@ -155,6 +166,7 @@ abstract class AWebApi
 				$headers[] = 'Pragma: public';
 				$headers[] = sprintf('Content-Length: %s', filesize($webApiResult->data->filename));
 				$result = file_get_contents($webApiResult->data->filename);
+				@unlink($webApiResult->data->filename);
 				break;
             default:
 				$headers[] = "Content-type: text; charset=utf-8";                        

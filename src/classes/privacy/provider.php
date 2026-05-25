@@ -30,6 +30,7 @@ require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
 use \core_privacy\local\metadata\collection;
 use \core_privacy\local\request\contextlist;
+use \core_privacy\local\request\writer;
 use \mod_assign\privacy\assign_plugin_request_data;
 use mod_assign\privacy\useridlist;
 
@@ -52,7 +53,19 @@ class provider implements
      * @return collection Return the collection after adding to it.
      */
     public static function get_metadata(collection $collection): collection {
-        $collection->link_subsystem('core_files', 'privacy:metadata:filepurpose');
+        // The annotation table stores annotated HTML feedback linked to a student's submission.
+        // ownerid records the teacher who wrote the annotation.
+        $collection->add_database_table(
+            'assignfeedback_recitannotation',
+            [
+                'submission' => 'privacy:metadata:assignfeedback_recitannotation:submission',
+                'ownerid'    => 'privacy:metadata:assignfeedback_recitannotation:ownerid',
+                'annotation' => 'privacy:metadata:assignfeedback_recitannotation:annotation',
+                'lastupdate' => 'privacy:metadata:assignfeedback_recitannotation:lastupdate',
+            ],
+            'privacy:metadata:assignfeedback_recitannotation'
+        );
+
         return $collection;
     }
 
@@ -88,40 +101,120 @@ class provider implements
 
     /**
      * Export all user data for this plugin.
+     * Exports the annotation written about the user's submission.
      *
-     * @param  assign_plugin_request_data $exportdata Data used to determine which context and user to export and other useful
-     * information to help with exporting.
+     * @param  assign_plugin_request_data $exportdata Data used to determine which context and user to export.
      */
     public static function export_feedback_user_data(assign_plugin_request_data $exportdata) {
+        global $DB;
+
+        $userid  = $exportdata->get_user()->id;
+        $assign  = $exportdata->get_assign();
+        $assignid = $assign->get_instance()->id;
+
+        // Find annotations for all submissions of this user in this assignment.
+        $sql = "SELECT t1.id, t1.annotation, t1.occurrences, t1.lastupdate, t1.ownerid
+                  FROM {assignfeedback_recitannotation} t1
+                  INNER JOIN {assign_submission} t2 ON t1.submission = t2.id
+                  WHERE t2.assignment = :assignment AND t2.userid = :userid";
+
+        $records = $DB->get_records_sql($sql, ['assignment' => $assignid, 'userid' => $userid]);
+
+        if (empty($records)) {
+            return;
+        }
+
+        $context = $exportdata->get_context();
+        $subcontext = [get_string('pluginname', 'assignfeedback_recitannotation')];
+
+        foreach ($records as $record) {
+            $data = (object)[
+                'annotation'  => $record->annotation,
+                'occurrences' => $record->occurrences,
+                'lastupdate'  => \core_privacy\local\request\transform::datetime($record->lastupdate),
+            ];
+            writer::with_context($context)->export_data($subcontext, $data);
+        }
     }
 
     /**
-     * Any call to this method should delete all user data for the context defined in the deletion_criteria.
+     * Delete all feedback annotations for the given context (entire assignment).
      *
      * @param  assign_plugin_request_data $requestdata Data useful for deleting user data from this sub-plugin.
      */
     public static function delete_feedback_for_context(assign_plugin_request_data $requestdata) {
+        global $DB;
+
+        $assign   = $requestdata->get_assign();
+        $assignid = $assign->get_instance()->id;
+
+        $sql = "SELECT t1.id
+                  FROM {assignfeedback_recitannotation} t1
+                  INNER JOIN {assign_submission} t2 ON t1.submission = t2.id
+                  WHERE t2.assignment = :assignment";
+
+        $ids = $DB->get_fieldset_sql($sql, ['assignment' => $assignid]);
+
+        if (!empty($ids)) {
+            list($insql, $params) = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
+            $DB->delete_records_select('assignfeedback_recitannotation', "id $insql", $params);
+        }
     }
 
     /**
-     * Calling this function should delete all user data associated with this grade.
+     * Delete the annotation for a single grade (one student's submission attempt).
      *
      * @param  assign_plugin_request_data $requestdata Data useful for deleting user data.
      */
     public static function delete_feedback_for_grade(assign_plugin_request_data $requestdata) {
-       
+        global $DB;
+
+        $userid   = $requestdata->get_user()->id;
+        $assign   = $requestdata->get_assign();
+        $assignid = $assign->get_instance()->id;
+
+        $sql = "SELECT t1.id
+                  FROM {assignfeedback_recitannotation} t1
+                  INNER JOIN {assign_submission} t2 ON t1.submission = t2.id
+                  WHERE t2.assignment = :assignment AND t2.userid = :userid";
+
+        $ids = $DB->get_fieldset_sql($sql, ['assignment' => $assignid, 'userid' => $userid]);
+
+        if (!empty($ids)) {
+            list($insql, $params) = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
+            $DB->delete_records_select('assignfeedback_recitannotation', "id $insql", $params);
+        }
     }
 
-
     /**
-     * Deletes all feedback for the grade ids / userids provided in a context.
-     * assign_plugin_request_data contains:
-     * - context
-     * - assign object
-     * - grade ids (pluginids)
-     * - user ids
+     * Delete annotations for multiple grade ids / userids in a context.
+     *
      * @param  assign_plugin_request_data $deletedata A class that contains the relevant information required for deletion.
      */
     public static function delete_feedback_for_grades(assign_plugin_request_data $deletedata) {
+        global $DB;
+
+        $userids  = $deletedata->get_userids();
+        $assign   = $deletedata->get_assign();
+        $assignid = $assign->get_instance()->id;
+
+        if (empty($userids)) {
+            return;
+        }
+
+        list($usersql, $userparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'uid');
+
+        $sql = "SELECT t1.id
+                  FROM {assignfeedback_recitannotation} t1
+                  INNER JOIN {assign_submission} t2 ON t1.submission = t2.id
+                  WHERE t2.assignment = :assignment AND t2.userid $usersql";
+
+        $params = array_merge(['assignment' => $assignid], $userparams);
+        $ids = $DB->get_fieldset_sql($sql, $params);
+
+        if (!empty($ids)) {
+            list($insql, $inparams) = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
+            $DB->delete_records_select('assignfeedback_recitannotation', "id $insql", $inparams);
+        }
     }
 }
