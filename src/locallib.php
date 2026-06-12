@@ -85,16 +85,23 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
         $html = html_writer::script('', "{$CFG->wwwroot}/mod/assign/feedback/recitannotation/react/build/index.js");
         $html .= "<link href='{$CFG->wwwroot}/mod/assign/feedback/recitannotation/react/build/index.css' rel='stylesheet'></link>";
         
-        $strings = array('pluginname' => '', 'msg_action_completed' => '', 'msg_confirm_deletion' => '', 'student_production' => '', 
-                    'undo' => '', 'redo' => '', 'clean_student_production' => '', 'annotate' => '', 'ask_ai' => '', 
-                    'occurrences' => '', 'criterion' => '', 'count' => '', 'msg_confirm_clean_html_code' => '', 'select_item' => '', 
-                    'comment' => '', 'search_comment' => '', 'add_edit_comment' => '', 'delete' => '', 'cancel' => '', 
+        $strings = array('pluginname' => '', 'msg_action_completed' => '', 'msg_confirm_deletion' => '', 'student_production' => '',
+                    'undo' => '', 'redo' => '', 'clean_student_production' => '', 'annotate' => '', 'ask_ai' => '',
+                    'occurrences' => '', 'criterion' => '', 'count' => '', 'msg_confirm_clean_html_code' => '', 'select_item' => '',
+                    'comment' => '', 'search_comment' => '', 'add_edit_comment' => '', 'delete' => '', 'cancel' => '',
                     'save' => '', 'msg_required_field' => '', 'msg_error_highlighting' => '', 'ask_question' => '', 'ask' => '',
-                    'back_annotation_view' => '', 'criteria_list' => '', 'comment_list' => '', 'add_new_item' => '', 'import_criteria' => '', 
-                    'export_criteria' => '', 'name' => '', 'description' => '', 'color' => '', 'edit' => '', 
+                    'back_annotation_view' => '', 'criteria_list' => '', 'comment_list' => '', 'add_new_item' => '', 'import_criteria' => '',
+                    'export_criteria' => '', 'name' => '', 'description' => '', 'color' => '', 'edit' => '',
                     'move_up' => '', 'move_down' => '', 'only_lowercase' => '', 'add_edit_criterion' => '', 'ok' => '', 'delete_criterion' => '',
                     'quick_annotation_method' => '', 'add_edit_annotation' => '', 'print_comment_list' => '', 'prompt' => '',
-                    'input' => '', 'output' => '', 'result' => '', 'apply' => '');
+                    'input' => '', 'output' => '', 'result' => '', 'apply' => '',
+                    'prompt_ai' => '', 'add_edit_prompt_ai' => '', 'prompt_ai_help' => '', 'instruction_ai' => '',
+                    'select_criteria' => '', 'review_prompt' => '', 'generate_prompt' => '', 'msg_ai_student_text_prefix' => '',
+                    'documentation_download' => '', 'delete_all' => '', 'reset_annotation' => '', 'click_to_filter' => '',
+                    'msg_confirm_ai_correction' => '', 'msg_confirm_reset_annotation' => '',
+                    'err_no_ai_response' => '', 'err_ai_refused' => '', 'err_ai_response_too_long' => '',
+                    'err_ai_json_format' => '', 'err_criterion_not_found' => '',
+                    'student_work_placeholder' => '', 'default_prompt_ai' => '');
         
         foreach($strings as $key => $value){
             $strings[$key] = get_string($key, 'assignfeedback_recitannotation');

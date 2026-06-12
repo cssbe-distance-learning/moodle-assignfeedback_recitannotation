@@ -1,4 +1,4 @@
-
+﻿
 import React, { Component } from 'react';
 import { Button, ButtonGroup, ButtonToolbar, Form, Modal, Tab, Tabs} from 'react-bootstrap';
 import { faArrowRight,  faPencilAlt,  faSave, faTimes} from '@fortawesome/free-solid-svg-icons';
@@ -56,7 +56,7 @@ export class ModalAskAi extends Component{
 
     onReviewPrompt(criteriaList){     
         if(criteriaList.length === 0){
-            $glVars.feedback.showWarning($glVars.i18n.pluginname, 'Liste de critères', 3);
+            $glVars.feedback.showWarning($glVars.i18n.pluginname, $glVars.i18n.criteria_list, 3);
             return "";
         } 
 
@@ -78,7 +78,7 @@ export class ModalAskAi extends Component{
         }
         
         // get student text here to avoid loosing HTML tags
-        let studentText = `Analyse ce texte d'élève et génère le JSON selon le schéma : \n Texte : \n ${AnnotationView.getHtml()}`;
+        let studentText = `${$glVars.i18n.msg_ai_student_text_prefix}${AnnotationView.getHtml()}`;
 
         let payload = {
             model: $glVars.moodleData.aiModel,    
@@ -161,21 +161,21 @@ export class ModalAskAi extends Component{
         const message = result.data.output.find(m => m.role === "assistant");
 
         if (!message) {
-            $glVars.feedback.showError($glVars.i18n.pluginname, "Aucune réponse de l'IA.");
+            $glVars.feedback.showError($glVars.i18n.pluginname, $glVars.i18n.err_no_ai_response);
             return;
         }
 
         // 2. CHECK FOR REFUSAL (Safety filters)
         // Some models use a 'refusal' property; others just send the "I'm sorry" text.
         if (message.status === "incomplete" && message.content[0].text.includes("I'm sorry")) {
-            $glVars.feedback.showError($glVars.i18n.pluginname, "L'IA a refusé de traiter cette demande pour des raisons de sécurité ou de politique.");
+            $glVars.feedback.showError($glVars.i18n.pluginname, $glVars.i18n.err_ai_refused);
             console.warn("Refusal detected:", message.content[0].text);
             return;
         }
 
         // 3. CHECK FOR TOKEN LIMIT (Incomplete JSON)
         if (message.status === "incomplete") {
-            $glVars.feedback.showError($glVars.i18n.pluginname, "La réponse est trop longue et a été coupée. Essayez de réduire le texte à corriger.");
+            $glVars.feedback.showError($glVars.i18n.pluginname, $glVars.i18n.err_ai_response_too_long);
             console.warn("Cut-off detected. Status is incomplete.");
             return;
         }
@@ -191,7 +191,7 @@ export class ModalAskAi extends Component{
             $glVars.feedback.showInfo($glVars.i18n.pluginname, $glVars.i18n.msg_action_completed, 3);
         } 
         catch (error) {
-            $glVars.feedback.showError($glVars.i18n.pluginname, "Erreur de formatage : l'IA n'a pas renvoyé un JSON valide.");
+            $glVars.feedback.showError($glVars.i18n.pluginname, $glVars.i18n.err_ai_json_format);
             console.error("Parsing error:", error, "Raw text:", message.content[0].text);
         }
     }
@@ -259,13 +259,13 @@ export class ModalAskAiUserView extends Component{
         <div>
             <Form>
                 <Form.Group >
-                    <Form.Label>{'Liste de critères'}</Form.Label>
+                    <Form.Label>{$glVars.i18n.criteria_list}</Form.Label>
                     <ToggleButtons name="criteriaList" onChange={this.onDataChange} type="checkbox" value={this.state.data.criteriaList} options={this.props.criteriaList}/>
-                </Form.Group>                    
+                </Form.Group>
             </Form>
         </div>;
 
-        let main = 
+        let main =
             <Modal show={true} onHide={() => this.props.onClose(false)} size="lg" backdrop='static' tabIndex="-1">
                 <Modal.Header closeButton>
                     <Modal.Title>{$glVars.i18n.ask_ai}</Modal.Title>
@@ -344,15 +344,15 @@ export class ModalAskAiTechView extends Component{
     render(){
         let body = 
         <Tabs activeKey={this.state.tab} onSelect={(tab) => this.setState({tab: tab})}>
-            <Tab eventKey="0" title={'Sélectionnez vos critères'}  className=' p-3' disabled>
+            <Tab eventKey="0" title={$glVars.i18n.select_criteria}  className=' p-3' disabled>
                 <Form>
                     <Form.Group >
-                        <Form.Label>{'Liste de critères'}</Form.Label>
+                        <Form.Label>{$glVars.i18n.criteria_list}</Form.Label>
                         <ToggleButtons name="criteriaList" onChange={this.onDataChange} type="checkbox" value={this.state.data.criteriaList} options={this.props.criteriaList}/>
                     </Form.Group>                    
                 </Form>
             </Tab>
-            <Tab eventKey="1" title={'Réviser le prompt'} className=' p-3' disabled>
+            <Tab eventKey="1" title={$glVars.i18n.review_prompt} className=' p-3' disabled>
                 <Form >
                     <Form.Group className='mb-3'>
                         <Form.Label>{$glVars.i18n.prompt}</Form.Label>
@@ -383,7 +383,7 @@ export class ModalAskAiTechView extends Component{
                             </Button>
                             {this.state.tab === '0' && 
                                 <Button variant='primary' onClick={this.onReviewPrompt}>
-                                    <FontAwesomeIcon icon={faArrowRight}/>{` Générer le prompt`}
+                                    <FontAwesomeIcon icon={faArrowRight}/>{` ${$glVars.i18n.generate_prompt}`}
                                 </Button>
                             }
                             {this.state.tab === '1' &&  
@@ -530,10 +530,10 @@ class ModalPromptAiForm extends Component{
         let body = 
             <Form onSubmit={this.onSubmit} onKeyDown={this.onKeyDown}>
                 <Form.Group className='mb-3' >
-                    <Form.Label>{"Prompt à l'IA"}</Form.Label>
+                    <Form.Label>{$glVars.i18n.prompt_ai}</Form.Label>
                     <InputTextArea name="prompt_ai" as="textarea" value={this.state.data.prompt_ai} onChange={this.onDataChange} rows={10} />
                     <Form.Text>
-                        Veuillez utiliser les variables suivantes pour le remplacement automatique lors de la création du prompt : <strong>PLACEHOLDER_STUDENT_TEXT</strong>, <strong>PLACEHOLDER_CRITERIA_LIST</strong>
+                        {$glVars.i18n.prompt_ai_help}
                     </Form.Text>
                 </Form.Group>
                 
@@ -542,7 +542,7 @@ class ModalPromptAiForm extends Component{
         let main = 
             <Modal show={true} onHide={() => this.onClose(false)} size="md" backdrop='static' tabIndex="-1">
                 <Modal.Header closeButton>
-                    <Modal.Title>{"Ajouter/Modifier le Prompt à l'IA"}</Modal.Title>
+                    <Modal.Title>{$glVars.i18n.add_edit_prompt_ai}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>{body}</Modal.Body>
                 <Modal.Footer>

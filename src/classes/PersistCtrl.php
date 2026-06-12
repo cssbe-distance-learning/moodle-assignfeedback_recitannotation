@@ -362,7 +362,7 @@ class PersistCtrl extends MoodlePersistCtrl
                     $msg .= "\t" . $error->message;
                 }
 
-                throw new Exception("Error on reading XML file: $msg");
+                throw new Exception(get_string('err_xml_parse', 'assignfeedback_recitannotation', $msg));
             }
 
             $sortOrderObj = $this->getLastSortOrder($data->assignment);

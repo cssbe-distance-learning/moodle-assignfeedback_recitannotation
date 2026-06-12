@@ -86,6 +86,59 @@ $string['output'] = "Sortie";
 $string['result'] = "Résultat";
 $string['apply'] = "Appliquer";
 
+// IA / prompt
+$string['prompt_ai'] = 'Prompt IA';
+$string['add_edit_prompt_ai'] = "Ajouter/Modifier le Prompt à l'IA";
+$string['prompt_ai_help'] = 'Veuillez utiliser les variables suivantes pour le remplacement automatique lors de la création du prompt : PLACEHOLDER_STUDENT_TEXT, PLACEHOLDER_CRITERIA_LIST';
+$string['instruction_ai'] = "Instructions à l'IA";
+$string['select_criteria'] = 'Sélectionnez vos critères';
+$string['review_prompt'] = 'Réviser le prompt';
+$string['generate_prompt'] = 'Générer le prompt';
+$string['msg_ai_student_text_prefix'] = "Analyse ce texte d'élève et génère le JSON selon le schéma :\nTexte :\n";
+$string['documentation_download'] = 'Documentation et téléchargement des critères';
+$string['delete_all'] = 'Supprimer tous';
+$string['reset_annotation'] = "Réinitialiser l'annotation";
+$string['click_to_filter'] = 'Cliquer pour filtrer';
+
+// Dialogues de confirmation
+$string['msg_confirm_ai_correction'] = "<p>Cette action demandera à l'IA de corriger le texte, et toutes vos annotations actuelles seront perdues.</p><p><strong>Souhaitez-vous continuer?</strong></p>";
+$string['msg_confirm_reset_annotation'] = "<p><strong>Souhaitez-vous vraiment réinitialiser l'annotation ?</strong></p><p>Cette action supprimera toutes les annotations que vous avez ajoutées.</p>";
+
+// Messages d'erreur
+$string['err_no_ai_response'] = "Aucune réponse de l'IA.";
+$string['err_ai_refused'] = "L'IA a refusé de traiter cette demande pour des raisons de sécurité ou de politique.";
+$string['err_ai_response_too_long'] = 'La réponse est trop longue et a été coupée. Essayez de réduire le texte à corriger.';
+$string['err_ai_json_format'] = "Erreur de formatage : l'IA n'a pas renvoyé un JSON valide.";
+$string['err_criterion_not_found'] = 'Le critère "%s" est introuvable.';
+$string['err_xml_parse'] = 'Erreur de lecture du fichier XML : {$a}';
+$string['err_criterionid_mapping'] = 'Impossible de trouver la correspondance pour le critère lors de la restauration.';
+$string['student_work_placeholder'] = 'Le travail remis par l\'élève s\'affichera ici.';
+$string['default_prompt_ai'] = <<<'EOT'
+Tu es un extracteur JSON strict. Analyse le texte et génère un JSON respectant EXACTEMENT ces clés :
+1. "annotatedText" : texte avec balises [[e1:mot]].
+2. "generalFeedback" : message d'encouragement.
+3. "corrections" : tableau d'objets avec EXACTEMENT ces clés :
+   - "id" : (ex: "e1")
+   - "suggestion" : (le mot corrigé)
+   - "explanation" : (pourquoi c'est une erreur)
+   - "strategy" : (astuce pour l'élève)
+   - "criterion" : (l'ID du critère)
+4. Tu dois d'abord identifier les erreurs dans le texte et les marquer avec [[eX:mot]].
+5. Chaque balise [[eX:mot]] dans le champ "annotatedText" doit avoir une entrée correspondante UNIQUE dans le tableau "corrections".
+6. L'ID "eX" dans le tableau doit correspondre exactement à l'ID visible dans le texte.
+
+REMARQUE : N'utilise jamais l'ID (e1, e2) comme nom de clé. Utilise "id": "e1".
+
+CONSIGNE : Retourne UNIQUEMENT l'objet JSON brut. Pas de texte avant, pas de texte après, pas de balises ```json.
+
+TONALITÉ : Le champ 'generalFeedback' doit être bienveillant et encourageant.
+
+CRITÈRES À UTILISER (ID) :
+<<<
+PLACEHOLDER_CRITERIA_LIST
+>>>
+EOT;
+
 $string['privacy:metadata:assignfeedback_recitannotation'] = 'Rétroaction annotée rédigée par un enseignant sur la remise d\'un élève.';
 $string['privacy:metadata:assignfeedback_recitannotation:submission'] = 'L\'identifiant de la remise à laquelle cette annotation est associée.';
 $string['privacy:metadata:assignfeedback_recitannotation:ownerid'] = 'L\'identifiant de l\'enseignant qui a rédigé l\'annotation.';

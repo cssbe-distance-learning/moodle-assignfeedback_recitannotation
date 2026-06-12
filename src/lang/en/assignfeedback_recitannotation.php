@@ -86,6 +86,59 @@ $string['output'] = "Output";
 $string['result'] = "Result";
 $string['apply'] = "Apply";
 
+// AI / prompt strings
+$string['prompt_ai'] = 'AI Prompt';
+$string['add_edit_prompt_ai'] = 'Add/Edit AI Prompt';
+$string['prompt_ai_help'] = 'Use the following variables for automatic substitution when building the prompt: PLACEHOLDER_STUDENT_TEXT, PLACEHOLDER_CRITERIA_LIST';
+$string['instruction_ai'] = 'AI Instructions';
+$string['select_criteria'] = 'Select your criteria';
+$string['review_prompt'] = 'Review prompt';
+$string['generate_prompt'] = 'Generate prompt';
+$string['msg_ai_student_text_prefix'] = "Analyse this student text and generate the JSON according to the schema:\nText:\n";
+$string['documentation_download'] = 'Documentation and criteria download';
+$string['delete_all'] = 'Delete all';
+$string['reset_annotation'] = 'Reset annotation';
+$string['click_to_filter'] = 'Click to filter';
+
+// Confirmation dialogs
+$string['msg_confirm_ai_correction'] = '<p>This action will ask the AI to correct the text, and all your current annotations will be lost.</p><p><strong>Do you wish to continue?</strong></p>';
+$string['msg_confirm_reset_annotation'] = '<p><strong>Do you really want to reset the annotation?</strong></p><p>This action will remove all annotations you have added.</p>';
+
+// Error messages
+$string['err_no_ai_response'] = 'No response from AI.';
+$string['err_ai_refused'] = 'The AI refused to process this request for safety or policy reasons.';
+$string['err_ai_response_too_long'] = 'The response is too long and was cut off. Try reducing the text to correct.';
+$string['err_ai_json_format'] = 'Formatting error: the AI did not return valid JSON.';
+$string['err_criterion_not_found'] = 'The criterion "%s" was not found.';
+$string['err_xml_parse'] = 'Error reading XML file: {$a}';
+$string['err_criterionid_mapping'] = 'Could not find mapping for criterion during restore.';
+$string['student_work_placeholder'] = 'The student\'s submitted work will be displayed here.';
+$string['default_prompt_ai'] = <<<'EOT'
+You are a strict JSON extractor. Analyse the text and generate a JSON respecting EXACTLY these keys:
+1. "annotatedText": text with tags [[e1:word]].
+2. "generalFeedback": encouraging message.
+3. "corrections": array of objects with EXACTLY these keys:
+   - "id": (e.g. "e1")
+   - "suggestion": (the corrected word)
+   - "explanation": (why it is an error)
+   - "strategy": (tip for the student)
+   - "criterion": (the criterion ID)
+4. First identify errors in the text and mark them with [[eX:word]].
+5. Each [[eX:word]] tag in the "annotatedText" field must have a corresponding UNIQUE entry in the "corrections" array.
+6. The "eX" ID in the array must exactly match the ID visible in the text.
+
+NOTE: Never use the ID (e1, e2) as a key name. Use "id": "e1".
+
+INSTRUCTION: Return ONLY the raw JSON object. No text before, no text after, no ```json tags.
+
+TONE: The 'generalFeedback' field must be benevolent and encouraging.
+
+CRITERIA TO USE (ID):
+<<<
+PLACEHOLDER_CRITERIA_LIST
+>>>
+EOT;
+
 $string['privacy:metadata:assignfeedback_recitannotation'] = 'Annotated feedback written by a teacher on a student\'s submission.';
 $string['privacy:metadata:assignfeedback_recitannotation:submission'] = 'The ID of the submission this annotation belongs to.';
 $string['privacy:metadata:assignfeedback_recitannotation:ownerid'] = 'The ID of the teacher who wrote the annotation.';

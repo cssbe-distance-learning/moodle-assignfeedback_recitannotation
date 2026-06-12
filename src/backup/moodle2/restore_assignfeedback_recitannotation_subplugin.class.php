@@ -94,7 +94,7 @@ class restore_assignfeedback_recitannotation_subplugin extends restore_subplugin
             }
         }
         catch(Exception $ex){
-            debugging('Error on assignfeedback_recitannotation: ' . $ex->GetMessage(), DEBUG_DEVELOPER);
+            debugging('Error on assignfeedback_recitannotation: ' . $ex->getMessage(), DEBUG_DEVELOPER);
         }
     }
 
@@ -125,7 +125,7 @@ class restore_assignfeedback_recitannotation_subplugin extends restore_subplugin
             }
         }
         catch(Exception $ex){
-            debugging('Error on assignfeedback_recitannot_crit: ' . $ex->GetMessage(), DEBUG_DEVELOPER);
+            debugging('Error on assignfeedback_recitannot_crit: ' . $ex->getMessage(), DEBUG_DEVELOPER);
         }
     }
 
@@ -152,11 +152,11 @@ class restore_assignfeedback_recitannotation_subplugin extends restore_subplugin
                     $DB->insert_record('assignfeedback_recitannot_comment', $data);
                 }
             } else {
-                throw new Exception("Could not find mapping for criterionid!");
+                throw new Exception(get_string('err_criterionid_mapping', 'assignfeedback_recitannotation'));
             }
         }
         catch(Exception $ex){
-            debugging('Error on assignfeedback_recitannot_comment: ' . $ex->GetMessage(), DEBUG_DEVELOPER);
+            debugging('Error on assignfeedback_recitannot_comment: ' . $ex->getMessage(), DEBUG_DEVELOPER);
         }
         
     }
@@ -187,7 +187,7 @@ class restore_assignfeedback_recitannotation_subplugin extends restore_subplugin
             }
         }
         catch(Exception $ex){
-            debugging('Error on process_assignfeedback_recitannotation_promptai: ' . $ex->GetMessage(), DEBUG_DEVELOPER);
+            debugging('Error on process_assignfeedback_recitannotation_promptai: ' . $ex->getMessage(), DEBUG_DEVELOPER);
         }
     }
 

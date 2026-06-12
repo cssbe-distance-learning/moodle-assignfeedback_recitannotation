@@ -1,4 +1,4 @@
-
+﻿
 import React, { Component } from 'react';
 import { Button, ButtonGroup, ButtonToolbar, Col, Form, Modal, Row, Table} from 'react-bootstrap';
 import {  faBroom, faChalkboard, faCog, faComment, faInfo, faInfoCircle, faPrint, faRedo, faSave, faTimes, faTrash, faUndo} from '@fortawesome/free-solid-svg-icons';
@@ -115,7 +115,7 @@ export class AnnotationView extends Component {
                             <Button variant='link' onClick={this.onRedo} title={$glVars.i18n.redo} disabled={(this.state.stack.redo.length === 0)}>
                                 <FontAwesomeIcon icon={faRedo}/>
                             </Button>
-                            <Button variant='link' onClick={this.onResetAnnotation} title={'Réinitialiser l’annotation'}>
+                            <Button variant='link' onClick={this.onResetAnnotation} title={$glVars.i18n.reset_annotation}>
                                 <FontAwesomeIcon icon={faTrash}/>
                             </Button>
                         </ButtonGroup>
@@ -230,7 +230,7 @@ export class AnnotationView extends Component {
             }
         }
 
-        DlgConfirm.render($glVars.i18n.pluginname, `<p>Cette action demandera à l’IA de corriger le texte, et toutes vos annotations actuelles seront perdues.</p><p><strong>Souhaitez-vous continuer?</strong></p>`, $glVars.i18n.cancel, $glVars.i18n.ok, null, onApply);
+        DlgConfirm.render($glVars.i18n.pluginname, $glVars.i18n.msg_confirm_ai_correction, $glVars.i18n.cancel, $glVars.i18n.ok, null, onApply);
     }
 
     onClose(refresh){
@@ -400,7 +400,7 @@ export class AnnotationView extends Component {
                 }
             });
         }
-        DlgConfirm.render($glVars.i18n.pluginname, `<p><strong>Souhaitez-vous vraiment réinitialiser l’annotation ?</strong></p><p>Cette action supprimera toutes les annotations que vous avez ajoutées.</p>`, $glVars.i18n.cancel, $glVars.i18n.ok, null, onApply);
+        DlgConfirm.render($glVars.i18n.pluginname, $glVars.i18n.msg_confirm_reset_annotation, $glVars.i18n.cancel, $glVars.i18n.ok, null, onApply);
     }
 
     createNewAnnotation(el, criterionName, explanation, suggestion = '', strategy = '', aiFeedback = false, currentRange = null){
@@ -420,7 +420,7 @@ export class AnnotationView extends Component {
         let criterion = JsNx.getItem(this.props.criteriaList, 'name', criterionName, null);
 
         if(criterion === null){
-            let msg = `The criterion "${criterionName}" was not found.`;
+            let msg = UtilsString.sprintf($glVars.i18n.err_criterion_not_found, criterionName);
             $glVars.feedback.showError($glVars.i18n.pluginname, msg);
             //throw new Error(msg);
         }
@@ -511,7 +511,7 @@ class CriteriaList extends Component{
 
                 return <BadgeCriterion key={index} data={item} counter={this.props.counter} onFilter={this.onFilter} selected={selected}/>;
             })}
-            {this.props.criteriaList.length > 0 && <div className='text-muted text-center font-italic'>Cliquer pour filtrer</div>}
+            {this.props.criteriaList.length > 0 && <div className='text-muted text-center font-italic'>{$glVars.i18n.click_to_filter}</div>}
         </>;
 
         return main;

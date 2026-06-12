@@ -1,4 +1,4 @@
-
+﻿
 import React, { Component } from 'react';
 import { Badge, Button, ButtonGroup, ButtonToolbar, Form, Modal, Tab, Table, Tabs} from 'react-bootstrap';
 import { faArrowDown, faArrowLeft,  faArrowUp,  faCheckCircle,  faDownload,  faInfoCircle,  faPencilAlt, faPlus, faSave, faTimes, faTrash, faUpload} from '@fortawesome/free-solid-svg-icons';
@@ -48,7 +48,7 @@ export class SettingsView extends Component{
                 <Tab eventKey="1" title={$glVars.i18n.comment_list}  className='p-3'>
                     <CommentsView  criteriaList={criteriaList} commentList={commentList} refresh={this.props.refresh}/>
                 </Tab>
-                <Tab eventKey="2" title={"Prompt IA"}  className='p-3'>
+                <Tab eventKey="2" title={$glVars.i18n.prompt_ai}  className='p-3'>
                     <PromptAiView data={this.props.promptAi} refresh={this.props.refresh}/>
                 </Tab>
             </Tabs>
@@ -97,7 +97,7 @@ class CriterionView extends Component{
                     <a className='btn btn-link' href={`${Options.getGateway(true)}&service=exportCriteriaList&assignment=${$glVars.moodleData.assignment}`} target='_blank'>
                         <FontAwesomeIcon icon={faDownload}/>{` ${$glVars.i18n.export_criteria}`}
                     </a>
-                    <Button variant='link' className='text-danger' onClick={this.onDeleteAll}><FontAwesomeIcon icon={faTrash}/>{` Supprimer tous`}</Button>
+                    <Button variant='link' className='text-danger' onClick={this.onDeleteAll}><FontAwesomeIcon icon={faTrash}/>{` ${$glVars.i18n.delete_all}`}</Button>
                 </ButtonGroup>
                 <input  ref={this.fileRef} type="file" accept=".xml"  className='invisible' onChange={this.onFileChange} />
                 <Table striped bordered size='sm'>
@@ -105,7 +105,7 @@ class CriterionView extends Component{
                         <tr>
                             <th>{$glVars.i18n.name}</th>
                             <th  style={{width: 100}}>{$glVars.i18n.color}</th>
-                            <th>{"Instructions à l'IA"}</th>
+                            <th>{$glVars.i18n.instruction_ai}</th>
                             <th style={{width: 80}}></th>
                         </tr>
                     </thead>
@@ -332,7 +332,7 @@ class ModalCriterionForm extends Component{
                     
                 </Form.Group>
                 <Form.Group className='mb-3' >
-                    <Form.Label>{"Instructions à l'IA"}</Form.Label>
+                    <Form.Label>{$glVars.i18n.instruction_ai}</Form.Label>
                     <InputTextArea name="instruction_ai" as="textarea" value={this.state.data.instruction_ai} onChange={this.onDataChange} rows={5} />
                 </Form.Group>
             </Form>;
