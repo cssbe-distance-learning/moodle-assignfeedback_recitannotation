@@ -4,15 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [1.4.0] - 2026-06-12
 
 ### Fixed
 - Removed dead `get_feedback_annotation()` method that referenced a non-existent database field
 - Replaced hardcoded hostname dev-mode check with `$CFG->debug >= DEBUG_DEVELOPER`
 - Fixed `Exception::getMessage()` incorrect casing in WebApi (`GetMessage` → `getMessage`)
+- Corrected French language string key `url_documentationdesc` → `url_documentation_desc`
 
 ### Security
 - AI API key admin setting now uses `configpasswordunmask` to prevent accidental exposure
+
+### Added
+- PHPUnit tests for criteria/comments CRUD and Privacy API provider
+- GitHub Actions CI workflow (`moodle-plugin-ci`) for Moodle 4.3–4.5 / PHP 8.0–8.3
 
 ---
 
