@@ -44,18 +44,6 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
         return get_string('pluginname2', 'assignfeedback_recitannotation');
     }
 
-     /**
-     * Get the feedback comment from the database.
-     *
-     * @param int $gradeid
-     * @return stdClass|false The feedback comments for the given grade if it exists.
-     *                        False if it doesn't.
-     */
-    public function get_feedback_annotation($gradeid) {
-        global $DB;
-        return $DB->get_record('assignfeedback_recitannotation', array('grade'=>$gradeid));
-    }
-
     /**
      * Get file areas returns a list of areas this plugin stores files.
      *
@@ -126,7 +114,7 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
                     }";
 
         // if it is in debug mode, then avoid require() to load app React in dev mode
-        if(!in_array($_SERVER['HTTP_HOST'], array("localhost", "devserver"))){
+        if($CFG->debug < DEBUG_DEVELOPER){
             $script = "require(['recitannotation'], function () { $script });";
         }
         

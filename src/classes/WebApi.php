@@ -92,7 +92,7 @@ class WebApi extends MoodleApi
             return new WebApiResult(true, $result);
         }
         catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
+            return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
@@ -107,7 +107,7 @@ class WebApi extends MoodleApi
             return new WebApiResult(true);
         }
         catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
+            return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
@@ -130,7 +130,7 @@ class WebApi extends MoodleApi
             return new WebApiResult(true, $result);
         }
         catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
+            return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
@@ -145,7 +145,7 @@ class WebApi extends MoodleApi
             return new WebApiResult(true);
         }
         catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
+            return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
@@ -159,7 +159,7 @@ class WebApi extends MoodleApi
             return new WebApiResult(true);
         }
         catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
+            return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
@@ -184,7 +184,7 @@ class WebApi extends MoodleApi
             return new WebApiResult(true, $result);
         }
         catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
+            return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
@@ -204,7 +204,7 @@ class WebApi extends MoodleApi
             return new WebApiResult(true, $result);
         }
         catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
+            return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
@@ -219,7 +219,7 @@ class WebApi extends MoodleApi
             return new WebApiResult(true);
         }
         catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
+            return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
@@ -278,7 +278,7 @@ class WebApi extends MoodleApi
             return new WebApiResult(true, $file, "", 'application/xml');
         }
         catch(Exception $ex){
-            return new WebApiResult(false, null, $ex->GetMessage());
+            return new WebApiResult(false, null, $ex->getMessage());
         }
     }
 
@@ -295,7 +295,7 @@ class WebApi extends MoodleApi
             return new WebApiResult(true);
         }
         catch(Exception $ex){
-            return new WebApiResult(false, null, $ex->GetMessage());
+            return new WebApiResult(false, null, $ex->getMessage());
         }
     }
     
@@ -311,7 +311,7 @@ class WebApi extends MoodleApi
             return new WebApiResult(true, $result);
         }
         catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
+            return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
@@ -353,7 +353,7 @@ class WebApi extends MoodleApi
             return new WebApiResult(true, json_decode($response));
         }
         catch(Exception $ex){
-            return new WebApiResult(false, null, $ex->GetMessage());
+            return new WebApiResult(false, null, $ex->getMessage());
         }
     }
 
@@ -372,7 +372,7 @@ class WebApi extends MoodleApi
             return new WebApiResult(true, $result);
         }
         catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
+            return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 }
