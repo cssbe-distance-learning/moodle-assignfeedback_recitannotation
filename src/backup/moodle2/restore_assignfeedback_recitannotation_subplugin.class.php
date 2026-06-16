@@ -111,21 +111,21 @@ class restore_assignfeedback_recitannotation_subplugin extends restore_subplugin
             
             $data->assignment = $this->get_new_parentid('assign');
 
-            // debugging('assignfeedback_recitannot_crit: ' . print_r($data, true), DEBUG_DEVELOPER);
+            // debugging('assignfeedback_recitannotation_crit: ' . print_r($data, true), DEBUG_DEVELOPER);
 
             // Example: check if a record already exists.
-            if (!$DB->record_exists('assignfeedback_recitannot_crit', [
+            if (!$DB->record_exists('assignfeedback_recitannotation_crit', [
                 'assignment' => $data->assignment,
                 'name' => $data->name
             ])) {
-                $newitemid = $DB->insert_record('assignfeedback_recitannot_crit', $data);
+                $newitemid = $DB->insert_record('assignfeedback_recitannotation_crit', $data);
 
                 // Save mapping for child table
                 $this->set_mapping('criterion', $oldid, $newitemid);
             }
         }
         catch(Exception $ex){
-            debugging('Error on assignfeedback_recitannot_crit: ' . $ex->getMessage(), DEBUG_DEVELOPER);
+            debugging('Error on assignfeedback_recitannotation_crit: ' . $ex->getMessage(), DEBUG_DEVELOPER);
         }
     }
 
@@ -143,20 +143,20 @@ class restore_assignfeedback_recitannotation_subplugin extends restore_subplugin
             $data->criterionid = $this->get_mappingid('criterion', $data->criterionid);
 
             if ($data->criterionid) {
-             //   debugging('assignfeedback_recitannot_comment: ' . print_r($data, true), DEBUG_DEVELOPER);
+             //   debugging('assignfeedback_recitannotation_comment: ' . print_r($data, true), DEBUG_DEVELOPER);
                  // Example: check if a record already exists.
-                if (!$DB->record_exists('assignfeedback_recitannot_comment', [
+                if (!$DB->record_exists('assignfeedback_recitannotation_comment', [
                     'criterionid' => $data->criterionid,
                     'comment' => $data->comment
                 ])) {
-                    $DB->insert_record('assignfeedback_recitannot_comment', $data);
+                    $DB->insert_record('assignfeedback_recitannotation_comment', $data);
                 }
             } else {
                 throw new Exception(get_string('err_criterionid_mapping', 'assignfeedback_recitannotation'));
             }
         }
         catch(Exception $ex){
-            debugging('Error on assignfeedback_recitannot_comment: ' . $ex->getMessage(), DEBUG_DEVELOPER);
+            debugging('Error on assignfeedback_recitannotation_comment: ' . $ex->getMessage(), DEBUG_DEVELOPER);
         }
         
     }
@@ -174,13 +174,13 @@ class restore_assignfeedback_recitannotation_subplugin extends restore_subplugin
             
             $data->assignment = $this->get_new_parentid('assign');
 
-            // debugging('assignfeedback_recitannot_crit: ' . print_r($data, true), DEBUG_DEVELOPER);
+            // debugging('assignfeedback_recitannotation_crit: ' . print_r($data, true), DEBUG_DEVELOPER);
 
             // Example: check if a record already exists.
-            if (!$DB->record_exists('assignfeedback_recitannot_promptai', [
+            if (!$DB->record_exists('assignfeedback_recitannotation_promptai', [
                 'assignment' => $data->assignment
             ])) {
-                $newitemid = $DB->insert_record('assignfeedback_recitannot_promptai', $data);
+                $newitemid = $DB->insert_record('assignfeedback_recitannotation_promptai', $data);
 
                 // Save mapping for child table
                 $this->set_mapping('promptai', $oldid, $newitemid);

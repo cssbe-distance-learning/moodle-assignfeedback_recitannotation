@@ -84,16 +84,16 @@ class backup_assignfeedback_recitannotation_subplugin extends backup_subplugin {
             
 
             $crit->set_source_sql('SELECT t1.id, t1.assignment, t1.name, t1.description, t1.backgroundcolor, t1.sortorder, t1.instruction_ai 
-                            from {assignfeedback_recitannot_crit} t1 
+                            from {assignfeedback_recitannotation_crit} t1 
                             where t1.assignment = (SELECT assignment FROM {assign_grades} WHERE id = :gradeid)', 
                             array('gradeid' => backup::VAR_PARENTID));
 
-            $comment->set_source_table('assignfeedback_recitannot_comment', [
+            $comment->set_source_table('assignfeedback_recitannotation_comment', [
                 'criterionid' => backup::VAR_PARENTID
             ]);
 
             $promptAi->set_source_sql('SELECT t1.id, t1.assignment, t1.prompt_ai
-                            from {assignfeedback_recitannot_promptai} t1 
+                            from {assignfeedback_recitannotation_promptai} t1 
                             where t1.assignment = (SELECT assignment FROM {assign_grades} WHERE id = :gradeid)', 
                             array('gradeid' => backup::VAR_PARENTID));
 

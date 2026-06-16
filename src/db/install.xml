@@ -20,7 +20,7 @@
         <KEY NAME="ownerid" TYPE="foreign" FIELDS="ownerid" REFTABLE="user" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="assignfeedback_recitannot_crit" COMMENT="Stores the list of criteria">
+    <TABLE NAME="assignfeedback_recitannotation_crit" COMMENT="Stores the list of criteria">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="assignment" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -36,7 +36,7 @@
         <KEY NAME="nameunique" TYPE="unique" FIELDS="name,assignment" COMMENT="Unique criterion name by assignment."/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="assignfeedback_recitannot_comment" COMMENT="Stores the list of comments by criteria">
+    <TABLE NAME="assignfeedback_recitannotation_comment" COMMENT="Stores the list of comments by criteria">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="criterionid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" />
@@ -44,10 +44,10 @@
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Unique id"/>
-        <KEY NAME="fkcriterionid" TYPE="foreign" FIELDS="criterionid" REFTABLE="assignfeedback_recitannot_crit" REFFIELDS="id" />
+        <KEY NAME="fkcriterionid" TYPE="foreign" FIELDS="criterionid" REFTABLE="assignfeedback_recitannotation_crit" REFFIELDS="id" />
       </KEYS>
     </TABLE>
-    <TABLE NAME="assignfeedback_recitannot_promptai" COMMENT="Stores the prompt AI">
+    <TABLE NAME="assignfeedback_recitannotation_promptai" COMMENT="Stores the prompt AI">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="assignment" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>

@@ -155,8 +155,8 @@ class PersistCtrl extends MoodlePersistCtrl
         try{
             // delete comments
             $query = "select t1.id
-                from {assignfeedback_recitannot_comment} as t1
-                inner join {assignfeedback_recitannot_crit} as t2 on t1.criterionid = t2.id
+                from {assignfeedback_recitannotation_comment} as t1
+                inner join {assignfeedback_recitannotation_crit} as t2 on t1.criterionid = t2.id
                 where t2.assignment = ?";
             $rst = $this->getRecordsSQL($query, [$assignment]);
 
@@ -167,11 +167,11 @@ class PersistCtrl extends MoodlePersistCtrl
 
             if(count($ids) > 0){
                 list($in_sql, $params) = $DB->get_in_or_equal($ids);
-                $DB->delete_records_select('assignfeedback_recitannot_comment', "id $in_sql", $params);
+                $DB->delete_records_select('assignfeedback_recitannotation_comment', "id $in_sql", $params);
             }
 
             // delete criterias
-            $this->mysqlConn->delete_records("assignfeedback_recitannot_crit", ['assignment' => $assignment]);
+            $this->mysqlConn->delete_records("assignfeedback_recitannotation_crit", ['assignment' => $assignment]);
 
             // delete annotations
             $query = "select t1.id
@@ -208,19 +208,19 @@ class PersistCtrl extends MoodlePersistCtrl
             $record->instruction_ai = $data->instruction_ai;
 
             if($data->id == 0){
-                if (!$this->mysqlConn->record_exists('assignfeedback_recitannot_crit', ['name' => $record->name, 'assignment' => $record->assignment])) {
+                if (!$this->mysqlConn->record_exists('assignfeedback_recitannotation_crit', ['name' => $record->name, 'assignment' => $record->assignment])) {
                     // returns inserted ID
-                    $record->id = $this->mysqlConn->insert_record("assignfeedback_recitannot_crit", $record, true);
+                    $record->id = $this->mysqlConn->insert_record("assignfeedback_recitannotation_crit", $record, true);
                 }
             }
             else{
                 // Verify the criterion belongs to the authorized assignment before updating.
-                $existing = $this->mysqlConn->get_record('assignfeedback_recitannot_crit', ['id' => $data->id], '*', MUST_EXIST);
+                $existing = $this->mysqlConn->get_record('assignfeedback_recitannotation_crit', ['id' => $data->id], '*', MUST_EXIST);
                 if((int)$existing->assignment !== (int)$data->assignment){
                     throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
                 }
                 $record->id = $data->id;
-                $this->mysqlConn->update_record("assignfeedback_recitannot_crit", $record);
+                $this->mysqlConn->update_record("assignfeedback_recitannotation_crit", $record);
             }
 
             return $record;
@@ -231,7 +231,7 @@ class PersistCtrl extends MoodlePersistCtrl
     }
 
     public function getLastSortOrder($assignment){
-        $query = "select coalesce(max(sortorder),0) as sortorder from {assignfeedback_recitannot_crit} 
+        $query = "select coalesce(max(sortorder),0) as sortorder from {assignfeedback_recitannotation_crit} 
                 where assignment = ?";
 
         $result = $this->getRecordsSQL($query, array($assignment));
@@ -240,7 +240,7 @@ class PersistCtrl extends MoodlePersistCtrl
     }
 
     public function getCriteriaList($assignment){
-        $query = "select id, assignment, name, description, backgroundcolor, sortorder, coalesce(instruction_ai, '') as instruction_ai from {assignfeedback_recitannot_crit} 
+        $query = "select id, assignment, name, description, backgroundcolor, sortorder, coalesce(instruction_ai, '') as instruction_ai from {assignfeedback_recitannotation_crit} 
                 where assignment = ?
                 order by sortorder asc";
 
@@ -251,15 +251,15 @@ class PersistCtrl extends MoodlePersistCtrl
 
     public function deleteCriterion($id, $assignment = 0){
         try{
-            $current = $this->mysqlConn->get_record('assignfeedback_recitannot_crit', ['id' => $id], '*', MUST_EXIST);
+            $current = $this->mysqlConn->get_record('assignfeedback_recitannotation_crit', ['id' => $id], '*', MUST_EXIST);
 
             if($assignment > 0 && (int)$current->assignment !== (int)$assignment){
                 throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
             }
 
             if($current){
-                $this->mysqlConn->delete_records("assignfeedback_recitannot_comment", ['criterionid' => $id]);
-                $this->mysqlConn->delete_records("assignfeedback_recitannot_crit", ['id' => $id]);
+                $this->mysqlConn->delete_records("assignfeedback_recitannotation_comment", ['criterionid' => $id]);
+                $this->mysqlConn->delete_records("assignfeedback_recitannotation_crit", ['id' => $id]);
                 $this->resequenceSortOrder($current->assignment);
             }
 
@@ -280,9 +280,9 @@ class PersistCtrl extends MoodlePersistCtrl
             }
 
             list($sql, $params) = $this->mysqlConn->get_in_or_equal($ids);
-            $this->mysqlConn->delete_records_select('assignfeedback_recitannot_comment', "criterionid $sql", $params);
+            $this->mysqlConn->delete_records_select('assignfeedback_recitannotation_comment', "criterionid $sql", $params);
 
-            $this->mysqlConn->delete_records("assignfeedback_recitannot_crit", ['assignment' => $assignment]);
+            $this->mysqlConn->delete_records("assignfeedback_recitannotation_crit", ['assignment' => $assignment]);
 
             return true;
         }
@@ -293,8 +293,8 @@ class PersistCtrl extends MoodlePersistCtrl
 
     public function getCommentList($assignment){
         $query = "SELECT t1.id, t1.criterionid, t2.name,  t2.description, t1.comment 
-                    FROM {assignfeedback_recitannot_comment} as t1
-                    inner join {assignfeedback_recitannot_crit} as t2 on t1.criterionid = t2.id
+                    FROM {assignfeedback_recitannotation_comment} as t1
+                    inner join {assignfeedback_recitannotation_crit} as t2 on t1.criterionid = t2.id
                     where t2.assignment = ?
                     order by t2.sortorder, length(comment) asc, comment asc";
 
@@ -309,7 +309,7 @@ class PersistCtrl extends MoodlePersistCtrl
                 throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
             }
 
-            $this->mysqlConn->delete_records("assignfeedback_recitannot_comment", ['id' => $id]);
+            $this->mysqlConn->delete_records("assignfeedback_recitannotation_comment", ['id' => $id]);
             return true;
         }
         catch(Exception $ex){
@@ -324,8 +324,8 @@ class PersistCtrl extends MoodlePersistCtrl
             $record->comment = $data->comment;
 
             if($data->id == 0){
-                if (!$this->mysqlConn->record_exists('assignfeedback_recitannot_comment', ['criterionid' => $record->criterionid, 'comment' => $record->comment])) {
-                    $this->mysqlConn->insert_record("assignfeedback_recitannot_comment", $record);
+                if (!$this->mysqlConn->record_exists('assignfeedback_recitannotation_comment', ['criterionid' => $record->criterionid, 'comment' => $record->comment])) {
+                    $this->mysqlConn->insert_record("assignfeedback_recitannotation_comment", $record);
                 }
             }
             else{
@@ -333,7 +333,7 @@ class PersistCtrl extends MoodlePersistCtrl
                     throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
                 }
                 $record->id = $data->id;
-                $this->mysqlConn->update_record("assignfeedback_recitannot_comment", $record);
+                $this->mysqlConn->update_record("assignfeedback_recitannotation_comment", $record);
             }
 
             return true;
@@ -344,8 +344,8 @@ class PersistCtrl extends MoodlePersistCtrl
     }
 
     protected function commentBelongsToAssignment($commentId, $assignment){
-        $query = "SELECT t1.id FROM {assignfeedback_recitannot_comment} t1
-                  INNER JOIN {assignfeedback_recitannot_crit} t2 ON t1.criterionid = t2.id
+        $query = "SELECT t1.id FROM {assignfeedback_recitannotation_comment} t1
+                  INNER JOIN {assignfeedback_recitannotation_crit} t2 ON t1.criterionid = t2.id
                   WHERE t1.id = ? AND t2.assignment = ?";
         $records = $this->getRecordsSQL($query, [$commentId, $assignment]);
         return !empty($records);
@@ -405,7 +405,7 @@ class PersistCtrl extends MoodlePersistCtrl
 
     public function changeCriterionSortOrder($id, $direction, $assignment = 0){
         // 1. Get current item
-        $current = $this->mysqlConn->get_record('assignfeedback_recitannot_crit', ['id' => $id], '*', MUST_EXIST);
+        $current = $this->mysqlConn->get_record('assignfeedback_recitannotation_crit', ['id' => $id], '*', MUST_EXIST);
 
         if($assignment > 0 && (int)$current->assignment !== (int)$assignment){
             throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
@@ -415,7 +415,7 @@ class PersistCtrl extends MoodlePersistCtrl
         $targetSort = ($direction === 'up') ? $current->sortorder - 1 : $current->sortorder + 1;
 
         // 3. Get adjacent item
-        $adjacent = $this->mysqlConn->get_record('assignfeedback_recitannot_crit', 
+        $adjacent = $this->mysqlConn->get_record('assignfeedback_recitannotation_crit', 
                 [
                     'sortorder' => $targetSort,
                     'assignment' => $current->assignment
@@ -424,8 +424,8 @@ class PersistCtrl extends MoodlePersistCtrl
 
         if ($adjacent) {
             // 4. Swap sortorders
-            $this->mysqlConn->update_record('assignfeedback_recitannot_crit', ['id' => $current->id, 'sortorder' => $adjacent->sortorder]);
-            $this->mysqlConn->update_record('assignfeedback_recitannot_crit', ['id' => $adjacent->id, 'sortorder' => $current->sortorder]);
+            $this->mysqlConn->update_record('assignfeedback_recitannotation_crit', ['id' => $current->id, 'sortorder' => $adjacent->sortorder]);
+            $this->mysqlConn->update_record('assignfeedback_recitannotation_crit', ['id' => $adjacent->id, 'sortorder' => $current->sortorder]);
             return true;
         } else {
             // Can't move (e.g. already at top or bottom)
@@ -435,13 +435,13 @@ class PersistCtrl extends MoodlePersistCtrl
 
     public function resequenceSortOrder($assignment) {
         // Get items ordered by current sortorder
-        $items = $this->mysqlConn->get_records('assignfeedback_recitannot_crit', ['assignment' => $assignment], 'sortorder ASC');
+        $items = $this->mysqlConn->get_records('assignfeedback_recitannotation_crit', ['assignment' => $assignment], 'sortorder ASC');
 
         $i = 1;
         foreach ($items as $item) {
             if ($item->sortorder != $i) {
                 $item->sortorder = $i;
-                $this->mysqlConn->update_record('assignfeedback_recitannot_crit', $item);
+                $this->mysqlConn->update_record('assignfeedback_recitannotation_crit', $item);
             }
             $i++;
         }
@@ -449,7 +449,7 @@ class PersistCtrl extends MoodlePersistCtrl
 
     public function getPromptAi($assignment){
         $query = "SELECT * 
-                    FROM {assignfeedback_recitannot_promptai} 
+                    FROM {assignfeedback_recitannotation_promptai} 
                     where assignment = ?";
 
         $result = $this->getRecordsSQL($query, array($assignment), true);
@@ -464,11 +464,11 @@ class PersistCtrl extends MoodlePersistCtrl
             if($record->id == 0){
                 $record->assignment = $data->assignment;
                 $record->prompt_ai = $data->prompt_ai;
-                $this->mysqlConn->insert_record("assignfeedback_recitannot_promptai", $record);
+                $this->mysqlConn->insert_record("assignfeedback_recitannotation_promptai", $record);
             }
             else{
                 $record->prompt_ai = $data->prompt_ai;
-                $this->mysqlConn->update_record("assignfeedback_recitannot_promptai", $record);
+                $this->mysqlConn->update_record("assignfeedback_recitannotation_promptai", $record);
             }
 
             return true;

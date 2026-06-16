@@ -15,14 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Upgrade script for assignfeedback_recitannotation.
+ *
  * @package   assignfeedback_recitannotation
- * @copyright 2025 RÉCIT 
- * @license   {@link http://www.gnu.org/licenses/gpl-3.0.html} GNU GPL v3 or later
+ * @copyright 2025 RÉCIT
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
+ * Upgrade the plugin's database tables.
+ *
  * @param int $oldversion the version we are upgrading from
  * @return bool result
  */
@@ -31,8 +33,8 @@ function xmldb_assignfeedback_recitannotation_upgrade($oldversion) {
     $dbman = $DB->get_manager();
 
     $newversion = 2025120802;
-    if($oldversion < $newversion){
-        // create new table for AI prompts
+    if ($oldversion < $newversion) {
+        // Create new table for AI prompts.
         $table = new xmldb_table('assignfeedback_recitannot_promptai');
 
         if (!$dbman->table_exists($table)) {
@@ -40,22 +42,22 @@ function xmldb_assignfeedback_recitannotation_upgrade($oldversion) {
             $table->add_field('assignment', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
             $table->add_field('prompt_ai', XMLDB_TYPE_TEXT, null, null, null, null, null);
 
-            $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
             $table->add_key('fkassignmentid', XMLDB_KEY_FOREIGN, ['assignment'], 'assign', ['id']);
             $table->add_key('uniqueassignment', XMLDB_KEY_UNIQUE, ['assignment']);
 
             $dbman->create_table($table);
         }
 
-        // update table criteria
+        // Update criteria table with AI instruction field.
         $table = new xmldb_table('assignfeedback_recitannot_crit');
 
-        $fields = array(
+        $fields = [
             new xmldb_field('instruction_ai', XMLDB_TYPE_TEXT, null, null, null, null, null),
-        );
+        ];
 
-        // Conditionally launch add fields
-        foreach ($fields as $field){
+        // Conditionally launch add fields.
+        foreach ($fields as $field) {
             if (!$dbman->field_exists($table, $field)) {
                 $dbman->add_field($table, $field);
             }
@@ -64,6 +66,23 @@ function xmldb_assignfeedback_recitannotation_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, $newversion, 'assignfeedback', 'recitannotation');
     }
 
+    $newversion = 2026061201;
+    if ($oldversion < $newversion) {
+        // Rename tables to use the full plugin component prefix.
+        $renames = [
+            'assignfeedback_recitannot_crit'     => 'assignfeedback_recitannotation_crit',
+            'assignfeedback_recitannot_comment'  => 'assignfeedback_recitannotation_comment',
+            'assignfeedback_recitannot_promptai' => 'assignfeedback_recitannotation_promptai',
+        ];
+        foreach ($renames as $oldname => $newname) {
+            $oldtable = new xmldb_table($oldname);
+            if ($dbman->table_exists($oldtable)) {
+                $dbman->rename_table($oldtable, $newname);
+            }
+        }
+
+        upgrade_plugin_savepoint(true, $newversion, 'assignfeedback', 'recitannotation');
+    }
 
     return true;
 }
