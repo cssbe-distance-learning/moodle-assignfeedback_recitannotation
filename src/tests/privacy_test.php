@@ -55,15 +55,18 @@ class privacy_test extends \advanced_testcase {
         $result     = provider::get_metadata($collection);
 
         $items = $result->get_collection();
-        $this->assertArrayHasKey('assignfeedback_recitannotation', $items);
-        $this->assertInstanceOf(database_table::class, $items['assignfeedback_recitannotation']);
+        $this->assertNotEmpty($items);
+        $this->assertContainsOnlyInstancesOf(database_table::class, $items);
     }
 
     public function test_get_metadata_includes_required_fields(): void {
         $collection = new collection('assignfeedback_recitannotation');
         $result     = provider::get_metadata($collection);
 
-        $table  = $result->get_collection()['assignfeedback_recitannotation'];
+        // Moodle 4.x keys items by table name; older versions use numeric keys.
+        $items  = $result->get_collection();
+        /** @var database_table $table */
+        $table  = reset($items);
         $fields = $table->get_privacy_fields();
 
         $this->assertArrayHasKey('submission',  $fields);

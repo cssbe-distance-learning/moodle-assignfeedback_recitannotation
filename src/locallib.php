@@ -22,6 +22,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
+require_once($CFG->dirroot . '/mod/assign/locallib.php');
 require_once(dirname(__FILE__).'/classes/Options.php');
 require_once(dirname(__FILE__).'/classes/PersistCtrl.php');
 
