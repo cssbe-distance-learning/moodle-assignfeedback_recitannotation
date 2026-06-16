@@ -22,9 +22,14 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$settings->add(new admin_setting_configcheckbox('assignfeedback_recitannotation/default',
-                   new lang_string('default', 'assignfeedback_recitannotation'),
-                   new lang_string('default_help', 'assignfeedback_recitannotation'), 0));
+defined('MOODLE_INTERNAL') || die();
+
+$settings->add(new admin_setting_configcheckbox(
+    'assignfeedback_recitannotation/default',
+    new lang_string('default', 'assignfeedback_recitannotation'),
+    new lang_string('default_help', 'assignfeedback_recitannotation'),
+    0
+));
 
 $name = 'assignfeedback_recitannotation/ai_api_endpoint';
 $title = get_string('ai_api_endpoint', 'assignfeedback_recitannotation');
