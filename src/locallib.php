@@ -101,7 +101,10 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
                     'msg_confirm_ai_correction' => '', 'msg_confirm_reset_annotation' => '',
                     'err_no_ai_response' => '', 'err_ai_refused' => '', 'err_ai_response_too_long' => '',
                     'err_ai_json_format' => '', 'err_criterion_not_found' => '',
-                    'student_work_placeholder' => '', 'default_prompt_ai' => '');
+                    'student_work_placeholder' => '', 'default_prompt_ai' => '',
+                    'analysis_in_progress' => '', 'time_elapsed' => '', 'cancel_request' => '',
+                    'schema_annotated_text_desc' => '', 'schema_general_feedback_desc' => '',
+                    'schema_explanation_desc' => '', 'schema_strategy_desc' => '', 'schema_criterion_desc' => '');
         
         foreach($strings as $key => $value){
             $strings[$key] = get_string($key, 'assignfeedback_recitannotation');

@@ -96,38 +96,38 @@ export class ModalAskAi extends Component{
                     schema: {
                         type: "object",
                         properties: {
-                            annotatedText: { 
+                            annotatedText: {
                                 type: "string",
-                                description: "Le texte complet où chaque erreur est entourée ainsi : [[id:mot_fautif]].  Il est crucial de laisser la faute de l'élève entre les crochets. Exemple : 'Il a [[e1:manjé]]' (et non 'mangé'). Il est également crucial de retourner le texte de l'élève avec les balises HTML d'origine." 
+                                description: $glVars.i18n.schema_annotated_text_desc
                             },
-                            generalFeedback: { 
+                            generalFeedback: {
                                 type: "string",
-                                description: "Un conseil global encourageant"
+                                description: $glVars.i18n.schema_general_feedback_desc
                             },
-                            corrections: { 
+                            corrections: {
                                 type: "array",
                                 items: {
                                     type: "object",
                                     properties: {
-                                        id: { 
+                                        id: {
                                             type: "string",
                                             description: "e1"
                                         },
-                                        suggestion: { 
-                                            type: "string", 
+                                        suggestion: {
+                                            type: "string",
                                             description: "correction"
                                         },
-                                        explanation: { 
+                                        explanation: {
                                             type: "string",
-                                            description: "Explication courte"
+                                            description: $glVars.i18n.schema_explanation_desc
                                         },
-                                        strategy: { 
+                                        strategy: {
                                             type: "string",
-                                            description: "Astuce pour retenir"
+                                            description: $glVars.i18n.schema_strategy_desc
                                         },
-                                        criterion: { 
+                                        criterion: {
                                             type: "string",
-                                            description: "L'identificateur du critère. La liste de critères sera passée dans le prompt. Chaque critère aura dans sa description (ID=) qui sera l'identificateur à ajouter dans ce champ."
+                                            description: $glVars.i18n.schema_criterion_desc
                                         }
                                     },
                                     required: ["id", "suggestion", "explanation", "strategy", "criterion"],

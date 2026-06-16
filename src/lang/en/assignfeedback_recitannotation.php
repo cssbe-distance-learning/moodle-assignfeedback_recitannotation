@@ -89,7 +89,7 @@ $string['apply'] = "Apply";
 // AI / prompt strings
 $string['prompt_ai'] = 'AI Prompt';
 $string['add_edit_prompt_ai'] = 'Add/Edit AI Prompt';
-$string['prompt_ai_help'] = 'Use the following variables for automatic substitution when building the prompt: PLACEHOLDER_STUDENT_TEXT, PLACEHOLDER_CRITERIA_LIST';
+$string['prompt_ai_help'] = 'Use the following variables for automatic substitution when building the prompt: PLACEHOLDER_CRITERIA_LIST';
 $string['instruction_ai'] = 'AI Instructions';
 $string['select_criteria'] = 'Select your criteria';
 $string['review_prompt'] = 'Review prompt';
@@ -99,6 +99,14 @@ $string['documentation_download'] = 'Documentation and criteria download';
 $string['delete_all'] = 'Delete all';
 $string['reset_annotation'] = 'Reset annotation';
 $string['click_to_filter'] = 'Click to filter';
+$string['analysis_in_progress'] = 'Analysis in progress';
+$string['time_elapsed'] = 'Time elapsed';
+$string['cancel_request'] = 'Cancel the request';
+$string['schema_annotated_text_desc'] = "The full text where each error is surrounded as: [[id:misspelled_word]]. It is crucial to leave the student's mistake between the brackets. Example: 'He [[e1:eated]]' (not 'ate'). It is also crucial to return the student's text with the original HTML tags.";
+$string['schema_general_feedback_desc'] = 'An overall encouraging piece of advice';
+$string['schema_explanation_desc'] = 'Short explanation';
+$string['schema_strategy_desc'] = 'Tip to remember';
+$string['schema_criterion_desc'] = 'The criterion identifier. The list of criteria will be passed in the prompt. Each criterion will have in its description (ID=) which will be the identifier to add in this field.';
 
 // Confirmation dialogs
 $string['msg_confirm_ai_correction'] = '<p>This action will ask the AI to correct the text, and all your current annotations will be lost.</p><p><strong>Do you wish to continue?</strong></p>';

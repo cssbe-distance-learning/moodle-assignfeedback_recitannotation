@@ -89,7 +89,7 @@ $string['apply'] = "Appliquer";
 // IA / prompt
 $string['prompt_ai'] = 'Prompt IA';
 $string['add_edit_prompt_ai'] = "Ajouter/Modifier le Prompt à l'IA";
-$string['prompt_ai_help'] = 'Veuillez utiliser les variables suivantes pour le remplacement automatique lors de la création du prompt : PLACEHOLDER_STUDENT_TEXT, PLACEHOLDER_CRITERIA_LIST';
+$string['prompt_ai_help'] = 'Veuillez utiliser les variables suivantes pour le remplacement automatique lors de la création du prompt : PLACEHOLDER_CRITERIA_LIST';
 $string['instruction_ai'] = "Instructions à l'IA";
 $string['select_criteria'] = 'Sélectionnez vos critères';
 $string['review_prompt'] = 'Réviser le prompt';
@@ -99,6 +99,14 @@ $string['documentation_download'] = 'Documentation et téléchargement des crit�
 $string['delete_all'] = 'Supprimer tous';
 $string['reset_annotation'] = "Réinitialiser l'annotation";
 $string['click_to_filter'] = 'Cliquer pour filtrer';
+$string['analysis_in_progress'] = 'Analyse en cours';
+$string['time_elapsed'] = 'Temps écoulé';
+$string['cancel_request'] = 'Annuler la requête';
+$string['schema_annotated_text_desc'] = "Le texte complet où chaque erreur est entourée ainsi : [[id:mot_fautif]]. Il est crucial de laisser la faute de l'élève entre les crochets. Exemple : 'Il a [[e1:manjé]]' (et non 'mangé'). Il est également crucial de retourner le texte de l'élève avec les balises HTML d'origine.";
+$string['schema_general_feedback_desc'] = 'Un conseil global encourageant';
+$string['schema_explanation_desc'] = 'Explication courte';
+$string['schema_strategy_desc'] = 'Astuce pour retenir';
+$string['schema_criterion_desc'] = "L'identificateur du critère. La liste de critères sera passée dans le prompt. Chaque critère aura dans sa description (ID=) qui sera l'identificateur à ajouter dans ce champ.";
 
 // Dialogues de confirmation
 $string['msg_confirm_ai_correction'] = "<p>Cette action demandera à l'IA de corriger le texte, et toutes vos annotations actuelles seront perdues.</p><p><strong>Souhaitez-vous continuer?</strong></p>";

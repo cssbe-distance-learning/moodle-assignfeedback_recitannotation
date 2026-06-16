@@ -68,13 +68,13 @@ export class Loading extends Component{
                 <div className='content p-2 rounded'>
                     {this.renderChildren()}
                 
-                    {this.state.timeout > 0 && 
+                    {this.state.timeout > 0 &&
                         <div className='text-white m-3 text-center'>
-                            <span className='text-white'><strong>Analyse en cours</strong></span>
+                            <span className='text-white'><strong>{$glVars.i18n.analysis_in_progress}</strong></span>
                             <br/>
-                            <span className='text-white' style={{fontSize: '12px'}}>(Temps écoulé: {this.state.elapsedTime} / {this.state.timeout})</span>
+                            <span className='text-white' style={{fontSize: '12px'}}>{`(${$glVars.i18n.time_elapsed}: ${this.state.elapsedTime} / ${this.state.timeout})`}</span>
                             <br/>
-                            <Button variant="link" className='text-white' style={{fontSize: '12px'}} onClick={this.onAbort}>Annuler la requête</Button>                            
+                            <Button variant="link" className='text-white' style={{fontSize: '12px'}} onClick={this.onAbort}>{$glVars.i18n.cancel_request}</Button>
                         </div>}
                 </div>
             </div>;
