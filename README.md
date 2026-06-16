@@ -105,4 +105,4 @@ This plugin is distributed under the [GNU General Public License v3.0](LICENSE) 
 
 ## Credits
 
-Developed by [RÉCIT](https://recit.qc.ca) and CSSBE[https://cssbe.gouv.qc.ca/].
+Developed by [RÉCIT](https://recit.qc.ca) and [CSSBE](https://cssbe.gouv.qc.ca/]).
