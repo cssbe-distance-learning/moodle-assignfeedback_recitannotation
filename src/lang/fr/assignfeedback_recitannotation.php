@@ -121,31 +121,25 @@ $string['err_criterion_not_found'] = 'Le critère "%s" est introuvable.';
 $string['err_xml_parse'] = 'Erreur de lecture du fichier XML : {$a}';
 $string['err_criterionid_mapping'] = 'Impossible de trouver la correspondance pour le critère lors de la restauration.';
 $string['student_work_placeholder'] = 'Le travail remis par l\'élève s\'affichera ici.';
-$string['default_prompt_ai'] = <<<'EOT'
-Tu es un extracteur JSON strict. Analyse le texte et génère un JSON respectant EXACTEMENT ces clés :
-1. "annotatedText" : texte avec balises [[e1:mot]].
-2. "generalFeedback" : message d'encouragement.
-3. "corrections" : tableau d'objets avec EXACTEMENT ces clés :
-   - "id" : (ex: "e1")
-   - "suggestion" : (le mot corrigé)
-   - "explanation" : (pourquoi c'est une erreur)
-   - "strategy" : (astuce pour l'élève)
-   - "criterion" : (l'ID du critère)
-4. Tu dois d'abord identifier les erreurs dans le texte et les marquer avec [[eX:mot]].
-5. Chaque balise [[eX:mot]] dans le champ "annotatedText" doit avoir une entrée correspondante UNIQUE dans le tableau "corrections".
-6. L'ID "eX" dans le tableau doit correspondre exactement à l'ID visible dans le texte.
-
-REMARQUE : N'utilise jamais l'ID (e1, e2) comme nom de clé. Utilise "id": "e1".
-
-CONSIGNE : Retourne UNIQUEMENT l'objet JSON brut. Pas de texte avant, pas de texte après, pas de balises ```json.
-
-TONALITÉ : Le champ 'generalFeedback' doit être bienveillant et encourageant.
-
-CRITÈRES À UTILISER (ID) :
-<<<
-PLACEHOLDER_CRITERIA_LIST
->>>
-EOT;
+$string['default_prompt_ai'] = "Tu es un extracteur JSON strict. Analyse le texte et génère un JSON respectant EXACTEMENT ces clés :\n" .
+    "1. \"annotatedText\" : texte avec balises [[e1:mot]].\n" .
+    "2. \"generalFeedback\" : message d'encouragement.\n" .
+    "3. \"corrections\" : tableau d'objets avec EXACTEMENT ces clés :\n" .
+    "   - \"id\" : (ex: \"e1\")\n" .
+    "   - \"suggestion\" : (le mot corrigé)\n" .
+    "   - \"explanation\" : (pourquoi c'est une erreur)\n" .
+    "   - \"strategy\" : (astuce pour l'élève)\n" .
+    "   - \"criterion\" : (l'ID du critère)\n" .
+    "4. Tu dois d'abord identifier les erreurs dans le texte et les marquer avec [[eX:mot]].\n" .
+    "5. Chaque balise [[eX:mot]] dans le champ \"annotatedText\" doit avoir une entrée correspondante UNIQUE dans le tableau \"corrections\".\n" .
+    "6. L'ID \"eX\" dans le tableau doit correspondre exactement à l'ID visible dans le texte.\n\n" .
+    "REMARQUE : N'utilise jamais l'ID (e1, e2) comme nom de clé. Utilise \"id\": \"e1\".\n\n" .
+    "CONSIGNE : Retourne UNIQUEMENT l'objet JSON brut. Pas de texte avant, pas de texte après, pas de balises ```json.\n\n" .
+    "TONALITÉ : Le champ 'generalFeedback' doit être bienveillant et encourageant.\n\n" .
+    "CRITÈRES À UTILISER (ID) :\n" .
+    "<<<\n" .
+    "PLACEHOLDER_CRITERIA_LIST\n" .
+    ">>>";
 
 $string['privacy:metadata:assignfeedback_recitannotation'] = 'Rétroaction annotée rédigée par un enseignant sur la remise d\'un élève.';
 $string['privacy:metadata:assignfeedback_recitannotation:submission'] = 'L\'identifiant de la remise à laquelle cette annotation est associée.';

@@ -121,31 +121,25 @@ $string['err_criterion_not_found'] = 'The criterion "%s" was not found.';
 $string['err_xml_parse'] = 'Error reading XML file: {$a}';
 $string['err_criterionid_mapping'] = 'Could not find mapping for criterion during restore.';
 $string['student_work_placeholder'] = 'The student\'s submitted work will be displayed here.';
-$string['default_prompt_ai'] = <<<'EOT'
-You are a strict JSON extractor. Analyse the text and generate a JSON respecting EXACTLY these keys:
-1. "annotatedText": text with tags [[e1:word]].
-2. "generalFeedback": encouraging message.
-3. "corrections": array of objects with EXACTLY these keys:
-   - "id": (e.g. "e1")
-   - "suggestion": (the corrected word)
-   - "explanation": (why it is an error)
-   - "strategy": (tip for the student)
-   - "criterion": (the criterion ID)
-4. First identify errors in the text and mark them with [[eX:word]].
-5. Each [[eX:word]] tag in the "annotatedText" field must have a corresponding UNIQUE entry in the "corrections" array.
-6. The "eX" ID in the array must exactly match the ID visible in the text.
-
-NOTE: Never use the ID (e1, e2) as a key name. Use "id": "e1".
-
-INSTRUCTION: Return ONLY the raw JSON object. No text before, no text after, no ```json tags.
-
-TONE: The 'generalFeedback' field must be benevolent and encouraging.
-
-CRITERIA TO USE (ID):
-<<<
-PLACEHOLDER_CRITERIA_LIST
->>>
-EOT;
+$string['default_prompt_ai'] = "You are a strict JSON extractor. Analyse the text and generate a JSON respecting EXACTLY these keys:\n" .
+    "1. \"annotatedText\": text with tags [[e1:word]].\n" .
+    "2. \"generalFeedback\": encouraging message.\n" .
+    "3. \"corrections\": array of objects with EXACTLY these keys:\n" .
+    "   - \"id\": (e.g. \"e1\")\n" .
+    "   - \"suggestion\": (the corrected word)\n" .
+    "   - \"explanation\": (why it is an error)\n" .
+    "   - \"strategy\": (tip for the student)\n" .
+    "   - \"criterion\": (the criterion ID)\n" .
+    "4. First identify errors in the text and mark them with [[eX:word]].\n" .
+    "5. Each [[eX:word]] tag in the \"annotatedText\" field must have a corresponding UNIQUE entry in the \"corrections\" array.\n" .
+    "6. The \"eX\" ID in the array must exactly match the ID visible in the text.\n\n" .
+    "NOTE: Never use the ID (e1, e2) as a key name. Use \"id\": \"e1\".\n\n" .
+    "INSTRUCTION: Return ONLY the raw JSON object. No text before, no text after, no ```json tags.\n\n" .
+    "TONE: The 'generalFeedback' field must be benevolent and encouraging.\n\n" .
+    "CRITERIA TO USE (ID):\n" .
+    "<<<\n" .
+    "PLACEHOLDER_CRITERIA_LIST\n" .
+    ">>>";
 
 $string['privacy:metadata:assignfeedback_recitannotation'] = 'Annotated feedback written by a teacher on a student\'s submission.';
 $string['privacy:metadata:assignfeedback_recitannotation:submission'] = 'The ID of the submission this annotation belongs to.';
