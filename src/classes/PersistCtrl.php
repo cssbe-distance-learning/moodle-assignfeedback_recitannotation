@@ -15,44 +15,66 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Persistence controller for the recitannotation assign feedback plugin.
+ *
  * @package   assignfeedback_recitannotation
- * @copyright 2025 RÉCIT 
+ * @copyright 2025 RECIT
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace recitannotation;
 
-require_once "$CFG->dirroot/user/externallib.php";
-require_once __DIR__ . '/recitcommon/PersistCtrl.php';
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->dirroot . '/user/externallib.php');
+require_once(__DIR__ . '/recitcommon/PersistCtrl.php');
+require_once(__DIR__ . '/RecitAnnotation.php');
+require_once(__DIR__ . '/TableCriterion.php');
+require_once(__DIR__ . '/TableComment.php');
+require_once(__DIR__ . '/TablePromptAi.php');
 
 use DateTime;
 use Exception;
 use stdClass;
 
 /**
- * Singleton class
+ * Singleton persistence controller.
  */
-class PersistCtrl extends MoodlePersistCtrl
-{
+class PersistCtrl extends MoodlePersistCtrl {
+    /** @var PersistCtrl|null */
     protected static $instance = null;
-    
+
     /**
-     * @param MySQL Resource
+     * Returns the singleton instance.
+     *
+     * @param \moodle_database|null $mysqlconn
+     * @param \stdClass|null $signeduser
      * @return PersistCtrl
      */
-    public static function getInstance($mysqlConn = null, $signedUser = null)
-    {
-        if(!isset(self::$instance)) {
-            self::$instance = new self($mysqlConn, $signedUser);
+    public static function get_instance($mysqlconn = null, $signeduser = null) {
+        if (!isset(self::$instance)) {
+            self::$instance = new self($mysqlconn, $signeduser);
         }
         return self::$instance;
     }
-    
-    protected function __construct($mysqlConn, $signedUser){
-        parent::__construct($mysqlConn, $signedUser);
+
+    /**
+     * Constructor.
+     *
+     * @param \moodle_database $mysqlconn
+     * @param \stdClass $signeduser
+     */
+    protected function __construct($mysqlconn, $signeduser) {
+        parent::__construct($mysqlconn, $signeduser);
     }
-    
-    public function hasTeacherAccess($assignment){
+
+    /**
+     * Whether the current user has teacher-level access to the assignment.
+     *
+     * @param int $assignment
+     * @return bool
+     */
+    public function has_teacher_access($assignment) {
         global $DB, $USER;
 
         $assign = $DB->get_record('assign', ['id' => $assignment], '*', MUST_EXIST);
@@ -65,140 +87,178 @@ class PersistCtrl extends MoodlePersistCtrl
                 return true;
             }
         }
-        
+
         if (has_capability('moodle/course:update', $context) || has_capability('moodle/grade:viewall', $context)) {
             return true;
-        } 
-        
+        }
+
         return false;
     }
 
-    public function getAnnotation($assignmentId, $userId, $attemptnumber = 0){
-        $query = "select ". $this->sql_uniqueid() ." uniqueid, coalesce(t1.id, 0) id, 
-        coalesce(t1.submission, t2.id) as submission, t1.ownerid, coalesce(t1.annotation, t3.onlinetext) as annotation,
-        coalesce(t1.occurrences, '') as occurrences, t1.lastupdate
-        from {assign_submission} t2
-        inner join {assignsubmission_onlinetext} t3 on t2.id = t3.submission 
-        left join {assignfeedback_recitannotation} t1 on t2.id = t1.submission
-        where t2.assignment = ? and t2.userid = ? and t2.attemptnumber = ? ";
+    /**
+     * Returns the annotation for a given submission attempt.
+     *
+     * @param int $assignmentid
+     * @param int $userid
+     * @param int $attemptnumber
+     * @return RecitAnnotation
+     */
+    public function get_annotation($assignmentid, $userid, $attemptnumber = 0) {
+        $query = 'SELECT ' . $this->sql_uniqueid() . ' uniqueid, COALESCE(t1.id, 0) id,' .
+            ' COALESCE(t1.submission, t2.id) AS submission, t1.ownerid,' .
+            ' COALESCE(t1.annotation, t3.onlinetext) AS annotation,' .
+            ' COALESCE(t1.occurrences, \'\') AS occurrences, t1.lastupdate' .
+            ' FROM {assign_submission} t2' .
+            ' INNER JOIN {assignsubmission_onlinetext} t3 ON t2.id = t3.submission' .
+            ' LEFT JOIN {assignfeedback_recitannotation} t1 ON t2.id = t1.submission' .
+            ' WHERE t2.assignment = ? AND t2.userid = ? AND t2.attemptnumber = ?';
 
-        $rst = $this->getRecordsSQL($query, [$assignmentId, $userId, $attemptnumber]);
+        $rst = $this->get_records_sql($query, [$assignmentid, $userid, $attemptnumber]);
 
         $rst = array_pop($rst);
 
         $result = RecitAnnotation::create($rst);
 
-        // clean html tags if text has no annotation
-        if($result->id == 0){
+        // Clean html tags if text has no annotation.
+        if ($result->id == 0) {
             $result->annotation = strip_tags($result->annotation, ['<br>', '<p>']);
         }
-        
+
         return $result;
     }
 
-    public function saveAnnotation($data, $assignment = 0){
-        try{
-            if($data->id != 0 && $assignment > 0){
-                if(!$this->annotationBelongsToAssignment($data->id, $assignment)){
+    /**
+     * Saves (inserts or updates) an annotation.
+     *
+     * @param \stdClass $data
+     * @param int $assignment
+     * @return int the annotation id
+     */
+    public function save_annotation($data, $assignment = 0) {
+        try {
+            if ($data->id != 0 && $assignment > 0) {
+                if (!$this->annotation_belongs_to_assignment($data->id, $assignment)) {
                     throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
                 }
             }
 
             $record = new stdClass();
             $record->submission = $data->submission;
-            $record->ownerid = $this->signedUser->id;
+            $record->ownerid = $this->signeduser->id;
             $record->annotation = $data->annotation;
             $record->occurrences = json_encode($data->occurrences);
             $record->lastupdate = time();
 
             $lastid = $data->id;
-            if($data->id == 0){
-                $lastid = $this->mysqlConn->insert_record("assignfeedback_recitannotation", $record);
-            }
-            else{
+            if ($data->id == 0) {
+                $lastid = $this->mysqlconn->insert_record("assignfeedback_recitannotation", $record);
+            } else {
                 $record->id = $data->id;
-                $this->mysqlConn->update_record("assignfeedback_recitannotation", $record);
+                $this->mysqlconn->update_record("assignfeedback_recitannotation", $record);
             }
 
             return $lastid;
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             throw $ex;
         }
     }
 
-    public function deleteAnnotation($id, $assignment = 0){
-        try{
-            if($assignment > 0 && !$this->annotationBelongsToAssignment($id, $assignment)){
+    /**
+     * Deletes an annotation.
+     *
+     * @param int $id
+     * @param int $assignment
+     * @return bool
+     */
+    public function delete_annotation($id, $assignment = 0) {
+        try {
+            if ($assignment > 0 && !$this->annotation_belongs_to_assignment($id, $assignment)) {
                 throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
             }
 
-            $this->mysqlConn->delete_records("assignfeedback_recitannotation", ['id' => $id]);
+            $this->mysqlconn->delete_records("assignfeedback_recitannotation", ['id' => $id]);
             return true;
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             throw $ex;
         }
     }
 
-    protected function annotationBelongsToAssignment($annotationId, $assignment){
-        $query = "SELECT t1.id FROM {assignfeedback_recitannotation} t1
-                  INNER JOIN {assign_submission} t2 ON t1.submission = t2.id
-                  WHERE t1.id = ? AND t2.assignment = ?";
-        $records = $this->getRecordsSQL($query, [$annotationId, $assignment]);
+    /**
+     * Whether the annotation belongs to the given assignment.
+     *
+     * @param int $annotationid
+     * @param int $assignment
+     * @return bool
+     */
+    protected function annotation_belongs_to_assignment($annotationid, $assignment) {
+        $query = 'SELECT t1.id FROM {assignfeedback_recitannotation} t1' .
+            ' INNER JOIN {assign_submission} t2 ON t1.submission = t2.id' .
+            ' WHERE t1.id = ? AND t2.assignment = ?';
+        $records = $this->get_records_sql($query, [$annotationid, $assignment]);
         return !empty($records);
     }
 
-    public function deletePluginData($assignment){
+    /**
+     * Deletes all plugin data (annotations, criteria, comments) for an assignment.
+     *
+     * @param int $assignment
+     * @return bool
+     */
+    public function delete_plugin_data($assignment) {
         global $DB;
 
-        try{
-            // delete comments
-            $query = "select t1.id
-                from {assignfeedback_recitannotation_comment} as t1
-                inner join {assignfeedback_recitannotation_crit} as t2 on t1.criterionid = t2.id
-                where t2.assignment = ?";
-            $rst = $this->getRecordsSQL($query, [$assignment]);
+        try {
+            // Delete comments.
+            $query = 'SELECT t1.id' .
+                ' FROM {assignfeedback_recitannotation_comment} t1' .
+                ' INNER JOIN {assignfeedback_recitannotation_crit} t2 ON t1.criterionid = t2.id' .
+                ' WHERE t2.assignment = ?';
+            $rst = $this->get_records_sql($query, [$assignment]);
 
-            $ids = array();
-            foreach($rst as $item){
+            $ids = [];
+            foreach ($rst as $item) {
                 $ids[] = $item->id;
             }
 
-            if(count($ids) > 0){
-                list($in_sql, $params) = $DB->get_in_or_equal($ids);
-                $DB->delete_records_select('assignfeedback_recitannotation_comment', "id $in_sql", $params);
+            if (count($ids) > 0) {
+                [$insql, $params] = $DB->get_in_or_equal($ids);
+                $DB->delete_records_select('assignfeedback_recitannotation_comment', "id $insql", $params);
             }
 
-            // delete criterias
-            $this->mysqlConn->delete_records("assignfeedback_recitannotation_crit", ['assignment' => $assignment]);
+            // Delete criterias.
+            $this->mysqlconn->delete_records("assignfeedback_recitannotation_crit", ['assignment' => $assignment]);
 
-            // delete annotations
-            $query = "select t1.id
-                    from {assign_submission} t2
-                    inner join {assignfeedback_recitannotation} t1 on t2.id = t1.submission
-                    where t2.assignment = ?";
-            $rst = $this->getRecordsSQL($query, [$assignment]);       
+            // Delete annotations.
+            $query = 'SELECT t1.id' .
+                ' FROM {assign_submission} t2' .
+                ' INNER JOIN {assignfeedback_recitannotation} t1 ON t2.id = t1.submission' .
+                ' WHERE t2.assignment = ?';
+            $rst = $this->get_records_sql($query, [$assignment]);
 
-            $ids = array();
-            foreach($rst as $item){
+            $ids = [];
+            foreach ($rst as $item) {
                 $ids[] = $item->id;
             }
 
-            if(count($ids) > 0){
-                list($in_sql, $params) = $DB->get_in_or_equal($ids);
-                $DB->delete_records_select('assignfeedback_recitannotation', "id $in_sql", $params);
+            if (count($ids) > 0) {
+                [$insql, $params] = $DB->get_in_or_equal($ids);
+                $DB->delete_records_select('assignfeedback_recitannotation', "id $insql", $params);
             }
-            
+
             return true;
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             throw $ex;
         }
     }
 
-    public function saveCriterion($data){
-        try{
+    /**
+     * Saves (inserts or updates) a criterion.
+     *
+     * @param \stdClass $data
+     * @return TableCriterion
+     */
+    public function save_criterion($data) {
+        try {
             $record = new TableCriterion();
             $record->assignment = $data->assignment;
             $record->name = $data->name;
@@ -207,321 +267,364 @@ class PersistCtrl extends MoodlePersistCtrl
             $record->sortorder = $data->sortorder;
             $record->instruction_ai = $data->instruction_ai;
 
-            if($data->id == 0){
-                if (!$this->mysqlConn->record_exists('assignfeedback_recitannotation_crit', ['name' => $record->name, 'assignment' => $record->assignment])) {
-                    // returns inserted ID
-                    $record->id = $this->mysqlConn->insert_record("assignfeedback_recitannotation_crit", $record, true);
+            if ($data->id == 0) {
+                $exists = $this->mysqlconn->record_exists('assignfeedback_recitannotation_crit', [
+                    'name' => $record->name,
+                    'assignment' => $record->assignment,
+                ]);
+                if (!$exists) {
+                    // Returns inserted ID.
+                    $record->id = $this->mysqlconn->insert_record("assignfeedback_recitannotation_crit", $record, true);
                 }
-            }
-            else{
+            } else {
                 // Verify the criterion belongs to the authorized assignment before updating.
-                $existing = $this->mysqlConn->get_record('assignfeedback_recitannotation_crit', ['id' => $data->id], '*', MUST_EXIST);
-                if((int)$existing->assignment !== (int)$data->assignment){
+                $existing = $this->mysqlconn->get_record(
+                    'assignfeedback_recitannotation_crit',
+                    ['id' => $data->id],
+                    '*',
+                    MUST_EXIST
+                );
+                if ((int)$existing->assignment !== (int)$data->assignment) {
                     throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
                 }
                 $record->id = $data->id;
-                $this->mysqlConn->update_record("assignfeedback_recitannotation_crit", $record);
+                $this->mysqlconn->update_record("assignfeedback_recitannotation_crit", $record);
             }
 
             return $record;
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             throw $ex;
         }
     }
 
-    public function getLastSortOrder($assignment){
-        $query = "select coalesce(max(sortorder),0) as sortorder from {assignfeedback_recitannotation_crit} 
-                where assignment = ?";
+    /**
+     * Returns the highest sortorder currently in use for an assignment's criteria.
+     *
+     * @param int $assignment
+     * @return \stdClass
+     */
+    public function get_last_sort_order($assignment) {
+        $query = 'SELECT COALESCE(MAX(sortorder), 0) AS sortorder FROM {assignfeedback_recitannotation_crit}' .
+            ' WHERE assignment = ?';
 
-        $result = $this->getRecordsSQL($query, array($assignment));
+        $result = $this->get_records_sql($query, [$assignment]);
 
         return array_pop($result);
     }
 
-    public function getCriteriaList($assignment){
-        $query = "select id, assignment, name, description, backgroundcolor, sortorder, coalesce(instruction_ai, '') as instruction_ai from {assignfeedback_recitannotation_crit} 
-                where assignment = ?
-                order by sortorder asc";
+    /**
+     * Returns the list of criteria for an assignment, ordered by sortorder.
+     *
+     * @param int $assignment
+     * @return array
+     */
+    public function get_criteria_list($assignment) {
+        $query = 'SELECT id, assignment, name, description, backgroundcolor, sortorder,' .
+            ' COALESCE(instruction_ai, \'\') AS instruction_ai' .
+            ' FROM {assignfeedback_recitannotation_crit}' .
+            ' WHERE assignment = ?' .
+            ' ORDER BY sortorder ASC';
 
-        $result = $this->getRecordsSQL($query, array($assignment), true);
+        $result = $this->get_records_sql($query, [$assignment], true);
 
         return $result;
     }
 
-    public function deleteCriterion($id, $assignment = 0){
-        try{
-            $current = $this->mysqlConn->get_record('assignfeedback_recitannotation_crit', ['id' => $id], '*', MUST_EXIST);
+    /**
+     * Deletes a criterion and resequences the remaining sort orders.
+     *
+     * @param int $id
+     * @param int $assignment
+     * @return bool
+     */
+    public function delete_criterion($id, $assignment = 0) {
+        try {
+            $current = $this->mysqlconn->get_record('assignfeedback_recitannotation_crit', ['id' => $id], '*', MUST_EXIST);
 
-            if($assignment > 0 && (int)$current->assignment !== (int)$assignment){
+            if ($assignment > 0 && (int)$current->assignment !== (int)$assignment) {
                 throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
             }
 
-            if($current){
-                $this->mysqlConn->delete_records("assignfeedback_recitannotation_comment", ['criterionid' => $id]);
-                $this->mysqlConn->delete_records("assignfeedback_recitannotation_crit", ['id' => $id]);
-                $this->resequenceSortOrder($current->assignment);
+            if ($current) {
+                $this->mysqlconn->delete_records("assignfeedback_recitannotation_comment", ['criterionid' => $id]);
+                $this->mysqlconn->delete_records("assignfeedback_recitannotation_crit", ['id' => $id]);
+                $this->resequence_sort_order($current->assignment);
             }
 
             return true;
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             throw $ex;
         }
     }
 
-    public function deleteAllCriteria($assignment){
-        try{
-            $criteriaList = $this->getCriteriaList($assignment);
+    /**
+     * Deletes all criteria (and their comments) for an assignment.
+     *
+     * @param int $assignment
+     * @return bool
+     */
+    public function delete_all_criteria($assignment) {
+        try {
+            $criterialist = $this->get_criteria_list($assignment);
 
-            $ids = array();
-            foreach($criteriaList as $item){
+            $ids = [];
+            foreach ($criterialist as $item) {
                 $ids[] = $item->id;
             }
 
-            list($sql, $params) = $this->mysqlConn->get_in_or_equal($ids);
-            $this->mysqlConn->delete_records_select('assignfeedback_recitannotation_comment', "criterionid $sql", $params);
+            [$sql, $params] = $this->mysqlconn->get_in_or_equal($ids);
+            $this->mysqlconn->delete_records_select('assignfeedback_recitannotation_comment', "criterionid $sql", $params);
 
-            $this->mysqlConn->delete_records("assignfeedback_recitannotation_crit", ['assignment' => $assignment]);
+            $this->mysqlconn->delete_records("assignfeedback_recitannotation_crit", ['assignment' => $assignment]);
 
             return true;
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             throw $ex;
         }
     }
 
-    public function getCommentList($assignment){
-        $query = "SELECT t1.id, t1.criterionid, t2.name,  t2.description, t1.comment 
-                    FROM {assignfeedback_recitannotation_comment} as t1
-                    inner join {assignfeedback_recitannotation_crit} as t2 on t1.criterionid = t2.id
-                    where t2.assignment = ?
-                    order by t2.sortorder, length(comment) asc, comment asc";
+    /**
+     * Returns the list of comments for an assignment's criteria.
+     *
+     * @param int $assignment
+     * @return array
+     */
+    public function get_comment_list($assignment) {
+        $query = 'SELECT t1.id, t1.criterionid, t2.name, t2.description, t1.comment' .
+            ' FROM {assignfeedback_recitannotation_comment} t1' .
+            ' INNER JOIN {assignfeedback_recitannotation_crit} t2 ON t1.criterionid = t2.id' .
+            ' WHERE t2.assignment = ?' .
+            ' ORDER BY t2.sortorder, LENGTH(comment) ASC, comment ASC';
 
-        $result = $this->getRecordsSQL($query, array($assignment));
+        $result = $this->get_records_sql($query, [$assignment]);
 
         return $result;
     }
 
-    public function deleteComment($id, $assignment = 0){
-        try{
-            if($assignment > 0 && !$this->commentBelongsToAssignment($id, $assignment)){
+    /**
+     * Deletes a comment.
+     *
+     * @param int $id
+     * @param int $assignment
+     * @return bool
+     */
+    public function delete_comment($id, $assignment = 0) {
+        try {
+            if ($assignment > 0 && !$this->comment_belongs_to_assignment($id, $assignment)) {
                 throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
             }
 
-            $this->mysqlConn->delete_records("assignfeedback_recitannotation_comment", ['id' => $id]);
+            $this->mysqlconn->delete_records("assignfeedback_recitannotation_comment", ['id' => $id]);
             return true;
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             throw $ex;
         }
     }
 
-    public function saveComment($data, $assignment = 0){
-        try{
+    /**
+     * Saves (inserts or updates) a comment.
+     *
+     * @param \stdClass $data
+     * @param int $assignment
+     * @return bool
+     */
+    public function save_comment($data, $assignment = 0) {
+        try {
             $record = new TableComment();
             $record->criterionid = $data->criterionid;
             $record->comment = $data->comment;
 
-            if($data->id == 0){
-                if (!$this->mysqlConn->record_exists('assignfeedback_recitannotation_comment', ['criterionid' => $record->criterionid, 'comment' => $record->comment])) {
-                    $this->mysqlConn->insert_record("assignfeedback_recitannotation_comment", $record);
+            if ($data->id == 0) {
+                $exists = $this->mysqlconn->record_exists('assignfeedback_recitannotation_comment', [
+                    'criterionid' => $record->criterionid,
+                    'comment' => $record->comment,
+                ]);
+                if (!$exists) {
+                    $this->mysqlconn->insert_record("assignfeedback_recitannotation_comment", $record);
                 }
-            }
-            else{
-                if($assignment > 0 && !$this->commentBelongsToAssignment($data->id, $assignment)){
+            } else {
+                if ($assignment > 0 && !$this->comment_belongs_to_assignment($data->id, $assignment)) {
                     throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
                 }
                 $record->id = $data->id;
-                $this->mysqlConn->update_record("assignfeedback_recitannotation_comment", $record);
+                $this->mysqlconn->update_record("assignfeedback_recitannotation_comment", $record);
             }
 
             return true;
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             throw $ex;
         }
     }
 
-    protected function commentBelongsToAssignment($commentId, $assignment){
-        $query = "SELECT t1.id FROM {assignfeedback_recitannotation_comment} t1
-                  INNER JOIN {assignfeedback_recitannotation_crit} t2 ON t1.criterionid = t2.id
-                  WHERE t1.id = ? AND t2.assignment = ?";
-        $records = $this->getRecordsSQL($query, [$commentId, $assignment]);
+    /**
+     * Whether the comment belongs to the given assignment.
+     *
+     * @param int $commentid
+     * @param int $assignment
+     * @return bool
+     */
+    protected function comment_belongs_to_assignment($commentid, $assignment) {
+        $query = 'SELECT t1.id FROM {assignfeedback_recitannotation_comment} t1' .
+            ' INNER JOIN {assignfeedback_recitannotation_crit} t2 ON t1.criterionid = t2.id' .
+            ' WHERE t1.id = ? AND t2.assignment = ?';
+        $records = $this->get_records_sql($query, [$commentid, $assignment]);
         return !empty($records);
     }
 
-    public function importCriteriaList($data){
-        try{
+    /**
+     * Imports a criteria list (and AI prompt) from an exported XML file.
+     *
+     * @param \stdClass $data
+     * @return bool
+     */
+    public function import_criteria_list($data) {
+        try {
             libxml_use_internal_errors(true);
             $xml = simplexml_load_string($data->fileContent);
 
             if ($xml === false) {
                 $msg = "";
-                foreach(libxml_get_errors() as $error) {
+                foreach (libxml_get_errors() as $error) {
                     $msg .= "\t" . $error->message;
                 }
 
                 throw new Exception(get_string('err_xml_parse', 'assignfeedback_recitannotation', $msg));
             }
 
-            $sortOrderObj = $this->getLastSortOrder($data->assignment);
+            $sortorderobj = $this->get_last_sort_order($data->assignment);
 
-            $prompt_ai = new TablePromptAi();
-            $prompt_ai->assignment = (int) $data->assignment;
-            $prompt_ai->prompt_ai = (string) $xml->prompt_ai->payload;
-            $this->savePromptAi($prompt_ai);
+            $promptai = new TablePromptAi();
+            $promptai->assignment = (int) $data->assignment;
+            $promptai->prompt_ai = (string) $xml->prompt_ai->payload;
+            $this->save_prompt_ai($promptai);
 
-            // Loop through each criterion
+            // Loop through each criterion.
             foreach ($xml->criteria->criterion as $item) {
                 $criterion = new TableCriterion();
                 $criterion->assignment = (int) $data->assignment;
                 $criterion->name = (string) $item->name;
                 $criterion->description = (string) $item->description;
                 $criterion->backgroundcolor = (string) $item->backgroundcolor;
-                $criterion->sortorder = ++$sortOrderObj->sortorder;
+                $criterion->sortorder = ++$sortorderobj->sortorder;
 
-                if(isset($item->instruction_ai)){
+                if (isset($item->instruction_ai)) {
                     $criterion->instruction_ai = (string) $item->instruction_ai;
                 }
-                
-                $criterion = $this->saveCriterion($criterion);
 
-                // Handle comments
+                $criterion = $this->save_criterion($criterion);
+
+                // Handle comments.
                 foreach ($item->comments->comment as $item2) {
                     $comment = new TableComment();
                     $comment->criterionid = $criterion->id;
                     $comment->comment = (string) $item2->comment;
-                    $this->saveComment($comment);
+                    $this->save_comment($comment);
                 }
             }
-           
+
             return true;
-        }
-         catch(Exception $ex){
+        } catch (Exception $ex) {
             throw $ex;
         }
     }
 
-    public function changeCriterionSortOrder($id, $direction, $assignment = 0){
-        // 1. Get current item
-        $current = $this->mysqlConn->get_record('assignfeedback_recitannotation_crit', ['id' => $id], '*', MUST_EXIST);
+    /**
+     * Moves a criterion up or down in the sort order, swapping with its neighbour.
+     *
+     * @param int $id
+     * @param string $direction "up" or "down"
+     * @param int $assignment
+     * @return bool
+     */
+    public function change_criterion_sort_order($id, $direction, $assignment = 0) {
+        // 1. Get current item.
+        $current = $this->mysqlconn->get_record('assignfeedback_recitannotation_crit', ['id' => $id], '*', MUST_EXIST);
 
-        if($assignment > 0 && (int)$current->assignment !== (int)$assignment){
+        if ($assignment > 0 && (int)$current->assignment !== (int)$assignment) {
             throw new \Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
         }
 
-        // 2. Determine target sortorder
-        $targetSort = ($direction === 'up') ? $current->sortorder - 1 : $current->sortorder + 1;
+        // 2. Determine target sortorder.
+        $targetsort = ($direction === 'up') ? $current->sortorder - 1 : $current->sortorder + 1;
 
-        // 3. Get adjacent item
-        $adjacent = $this->mysqlConn->get_record('assignfeedback_recitannotation_crit', 
-                [
-                    'sortorder' => $targetSort,
-                    'assignment' => $current->assignment
-                ]
-            );
+        // 3. Get adjacent item.
+        $adjacent = $this->mysqlconn->get_record('assignfeedback_recitannotation_crit', [
+            'sortorder' => $targetsort,
+            'assignment' => $current->assignment,
+        ]);
 
         if ($adjacent) {
-            // 4. Swap sortorders
-            $this->mysqlConn->update_record('assignfeedback_recitannotation_crit', ['id' => $current->id, 'sortorder' => $adjacent->sortorder]);
-            $this->mysqlConn->update_record('assignfeedback_recitannotation_crit', ['id' => $adjacent->id, 'sortorder' => $current->sortorder]);
+            // 4. Swap sortorders.
+            $this->mysqlconn->update_record(
+                'assignfeedback_recitannotation_crit',
+                ['id' => $current->id, 'sortorder' => $adjacent->sortorder]
+            );
+            $this->mysqlconn->update_record(
+                'assignfeedback_recitannotation_crit',
+                ['id' => $adjacent->id, 'sortorder' => $current->sortorder]
+            );
             return true;
         } else {
-            // Can't move (e.g. already at top or bottom)
+            // Can't move (e.g. already at top or bottom).
             return false;
         }
     }
 
-    public function resequenceSortOrder($assignment) {
-        // Get items ordered by current sortorder
-        $items = $this->mysqlConn->get_records('assignfeedback_recitannotation_crit', ['assignment' => $assignment], 'sortorder ASC');
+    /**
+     * Resequences the sortorder of an assignment's criteria to be contiguous from 1.
+     *
+     * @param int $assignment
+     */
+    public function resequence_sort_order($assignment) {
+        // Get items ordered by current sortorder.
+        $items = $this->mysqlconn->get_records('assignfeedback_recitannotation_crit', ['assignment' => $assignment], 'sortorder ASC');
 
         $i = 1;
         foreach ($items as $item) {
             if ($item->sortorder != $i) {
                 $item->sortorder = $i;
-                $this->mysqlConn->update_record('assignfeedback_recitannotation_crit', $item);
+                $this->mysqlconn->update_record('assignfeedback_recitannotation_crit', $item);
             }
             $i++;
         }
     }
 
-    public function getPromptAi($assignment){
-        $query = "SELECT * 
-                    FROM {assignfeedback_recitannotation_promptai} 
-                    where assignment = ?";
+    /**
+     * Returns the AI prompt configured for an assignment.
+     *
+     * @param int $assignment
+     * @return TablePromptAi
+     */
+    public function get_prompt_ai($assignment) {
+        $query = 'SELECT * FROM {assignfeedback_recitannotation_promptai} WHERE assignment = ?';
 
-        $result = $this->getRecordsSQL($query, array($assignment), true);
+        $result = $this->get_records_sql($query, [$assignment], true);
 
         return (count($result) > 0 ? array_shift($result) : new TablePromptAi());
     }
 
-    public function savePromptAi($data){
-        try{	
-            $record = $this->getPromptAi($data->assignment);
+    /**
+     * Saves (inserts or updates) the AI prompt for an assignment.
+     *
+     * @param \stdClass $data
+     * @return bool
+     */
+    public function save_prompt_ai($data) {
+        try {
+            $record = $this->get_prompt_ai($data->assignment);
 
-            if($record->id == 0){
+            if ($record->id == 0) {
                 $record->assignment = $data->assignment;
                 $record->prompt_ai = $data->prompt_ai;
-                $this->mysqlConn->insert_record("assignfeedback_recitannotation_promptai", $record);
-            }
-            else{
+                $this->mysqlconn->insert_record("assignfeedback_recitannotation_promptai", $record);
+            } else {
                 $record->prompt_ai = $data->prompt_ai;
-                $this->mysqlConn->update_record("assignfeedback_recitannotation_promptai", $record);
+                $this->mysqlconn->update_record("assignfeedback_recitannotation_promptai", $record);
             }
 
             return true;
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             throw $ex;
         }
     }
-}
-
-class RecitAnnotation{
-    public $id = 0;
-    public $submission = 0;
-    public $ownerid = 0;
-    public $annotation = "";
-    public $occurrences = "";
-    public $lastupdate = 0;
-
-    public static function create($dbData){
-        $result = new RecitAnnotation();
-
-        if($dbData == null){
-            return $result;
-        }
-        
-        $result->id = intval($dbData->id);
-        $result->submission = intval($dbData->submission);
-        $result->ownerid = intval($dbData->ownerid);
-        $result->annotation = $dbData->annotation; 
-        $result->occurrences = $dbData->occurrences; 
-        $result->lastupdate = intval($dbData->lastupdate);
-        return $result;
-    }
-}
-
-class TableCriterion{
-    public $id = 0;
-    public $assignment = 0;
-    public $name = "";
-    public $description = "";
-    public $backgroundcolor = "";
-    public $sortorder = 0;
-    public $instruction_ai = "";
-}
-
-class TableComment{
-    public $id = 0;
-    public $criterionid = 0;
-    public $comment = "";
-}
-
-class TablePromptAi{
-    public $id = 0;
-    public $assignment = 0;
-    public $prompt_ai = "";
 }

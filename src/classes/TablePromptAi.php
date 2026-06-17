@@ -15,18 +15,31 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details for assignfeedback_recitannotation.
+ * DTO representing one row of the assignfeedback_recitannotation_promptai table.
  *
- * @package assignfeedback_recitannotation
+ * @package   assignfeedback_recitannotation
  * @copyright 2025 RECIT
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace recitannotation;
+
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026061201;
-$plugin->requires  = 2023100912.00; // Moodle 4.3.0.
-$plugin->supported = [403, 405];
-$plugin->component = 'assignfeedback_recitannotation';
-$plugin->release   = 'v1.5.0-stable';
-$plugin->maturity  = MATURITY_STABLE;
+/**
+ * DTO representing one row of the assignfeedback_recitannotation_promptai table.
+ *
+ * Property names must match the DB column names exactly: instances of this
+ * class are passed directly to insert_record()/update_record().
+ */
+class TablePromptAi {
+    /** @var int */
+    public $id = 0;
+
+    /** @var int */
+    public $assignment = 0;
+
+    // phpcs:ignore moodle.NamingConventions.ValidVariableName.MemberNameUnderscore
+    /** @var string must match the "prompt_ai" DB column name. */
+    public $prompt_ai = "";
+}

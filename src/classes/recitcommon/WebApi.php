@@ -15,8 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Common base WebApi dispatcher shared across RECIT plugins.
+ *
  * @package   assignfeedback_recitannotation
- * @copyright 2019 RÉCIT 
+ * @copyright 2019 RECIT
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,246 +29,315 @@ use DateTime;
 use Exception;
 use DateTimeZone;
 
-require_once(dirname(__FILE__)."/PersistCtrl.php");
+defined('MOODLE_INTERNAL') || die();
 
-class WebApiResult
-{
-    public $success = false;
-    public $data = null;
-    public $msg = "";
-    public $contentType = 'json';
-    
-    public function __construct($success, $data = null, $msg = "", $contentType = 'json'){
-        $this->success = $success;
-        $this->data = $data;
-        $this->msg = $msg;
-        $this->contentType = $contentType;
-    }
-}
+require_once(dirname(__FILE__) . "/WebApiResult.php");
+require_once(dirname(__FILE__) . "/PersistCtrl.php");
 
-abstract class AWebApi
-{
+/**
+ * Base WebApi request dispatcher.
+ */
+abstract class AWebApi {
+    /** @var array|null the current request payload */
     protected $request = null;
-    protected $lastResult = null;
-    public static $lastError = null;
-    public static $httpOrigin = "";
-    
-    public static function onPhpError(){
-        if(AWebApi::$lastError == null){
-            AWebApi::$lastError = error_get_last(); 
+
+    /** @var WebApiResult|null the result of the last dispatched service */
+    protected $lastresult = null;
+
+    /** @var array|null the last PHP error captured by the shutdown handler */
+    public static $lasterror = null;
+
+    /** @var string the allowed CORS origin */
+    public static $httporigin = "";
+
+    /**
+     * Shutdown handler that replies with a JSON error when a fatal PHP error occurred.
+     */
+    public static function on_php_error() {
+        if (self::$lasterror == null) {
+            self::$lasterror = error_get_last();
         }
 
-        if(AWebApi::$lastError != NULL) {
-            $headers = AWebApi::getDefaultHeaders();
+        if (self::$lasterror != null) {
+            $headers = self::get_default_headers();
             $headers[] = 'Status: 500 Internal Server Error';
-            $headers[] = "Content-type: application/json; charset=utf-8";  
-            foreach($headers as $header){ header($header); }
-            
-            if(ob_get_length() > 0){
+            $headers[] = "Content-type: application/json; charset=utf-8";
+            foreach ($headers as $header) {
+                header($header);
+            }
+
+            if (ob_get_length() > 0) {
                 ob_clean();
             }
-            
+
             flush();
-            echo json_encode( new WebApiResult(false, null, AWebApi::$lastError['message']));
+            echo json_encode(new WebApiResult(false, null, self::$lasterror['message']));
         }
     }
 
-    public static function getDefaultHeaders(){
-        $result = array();
-        $result[] = "Access-Control-Allow-Origin: ". AWebApi::$httpOrigin;
+    /**
+     * Returns the default CORS response headers.
+     *
+     * @return array
+     */
+    public static function get_default_headers() {
+        $result = [];
+        $result[] = "Access-Control-Allow-Origin: " . self::$httporigin;
         $result[] = 'Access-Control-Allow-Credentials: true';
-        $result[] = 'Access-Control-Max-Age: 86400';    // cache for 1 day
-        $result[] = "Access-Control-Allow-Methods: GET, POST, OPTIONS";         
+        $result[] = 'Access-Control-Max-Age: 86400'; // Cache for 1 day.
+        $result[] = "Access-Control-Allow-Methods: GET, POST, OPTIONS";
         $result[] = "Access-Control-Allow-Headers: Origin, Accept, Content-Type";
         return $result;
     }
 
-    public function getRequest(){
-        if(empty($_REQUEST)){
+    /**
+     * Reads the incoming request into $this->request.
+     */
+    public function get_request() {
+        if (empty($_REQUEST)) {
             $this->request = json_decode(file_get_contents('php://input'), true);
-            if($this->request == null){
-                $this->request = array();
+            if ($this->request == null) {
+                $this->request = [];
             }
-        }
-        else{
+        } else {
             $this->request = $_REQUEST;
         }
     }
 
-    public function preProcessRequest(){
-        $sesskey = (isset($this->request['sesskey']) ? clean_param($this->request['sesskey'], PARAM_TEXT) : 'nosesskey'); 
+    /**
+     * Validates the session key and the presence of a requested service.
+     *
+     * @return bool
+     */
+    public function pre_process_request() {
+        $sesskey = (isset($this->request['sesskey']) ? clean_param($this->request['sesskey'], PARAM_TEXT) : 'nosesskey');
 
-        if(!confirm_sesskey($sesskey)){
-            $this->lastResult = new WebApiResult(false, null, 'invalidsesskey');
+        if (!confirm_sesskey($sesskey)) {
+            $this->lastresult = new WebApiResult(false, null, 'invalidsesskey');
             return false;
         }
 
-        if(!isset($this->request['service'])){
+        if (!isset($this->request['service'])) {
             $msg = 'servicenotfound';
             $success = false;
 
-            if(isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == "OPTIONS"){
+            if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == "OPTIONS") {
                 $msg = "Replying OPTIONS request";
                 $success = true;
             }
 
-            $this->lastResult = new WebApiResult($success, null, $msg);
-			return false;
+            $this->lastresult = new WebApiResult($success, null, $msg);
+            return false;
         }
-		
+
         return true;
     }
 
-    protected function getAllowedServices(): array {
+    /**
+     * Returns the list of service method names this API allows clients to call.
+     *
+     * @return array
+     */
+    protected function get_allowed_services(): array {
         return [];
     }
 
-    public function processRequest(){
-        if(!$this->preProcessRequest()){
+    /**
+     * Validates and dispatches the requested service.
+     */
+    public function process_request() {
+        if (!$this->pre_process_request()) {
             return;
         }
 
-        $serviceWanted = clean_param($this->request['service'], PARAM_TEXT);
+        $servicewanted = clean_param($this->request['service'], PARAM_TEXT);
 
-        $allowed = $this->getAllowedServices();
-        if (!in_array($serviceWanted, $allowed, true)) {
-            $this->lastResult = new WebApiResult(false, null, 'servicenotfound');
+        $allowed = $this->get_allowed_services();
+        if (!in_array($servicewanted, $allowed, true)) {
+            $this->lastresult = new WebApiResult(false, null, 'servicenotfound');
             return;
         }
 
-        $result = $this->$serviceWanted($this->request);
+        $result = $this->$servicewanted($this->request);
 
-        $this->lastResult = $result;
+        $this->lastresult = $result;
     }
-	
-	public function replyClient(){
-        AWebApi::$lastError = error_get_last();        
-        if(AWebApi::$lastError != null){ return; }
- 
-        $webApiResult = $this->lastResult;
-        $headers = AWebApi::getDefaultHeaders(); 
-        $result = json_encode($webApiResult);
 
-        switch($webApiResult->contentType){
-			case 'json':
-				$headers[] = "Content-type: application/json; charset=utf-8";
-				break;
-			case 'html':
-				$headers[] = "Content-type: text/html; charset=utf-8";
-				break;
-			case 'octet-stream':
-			case 'application/csv':
-            case 'application/xml':
-				$headers[] = sprintf("Content-type: %s", $webApiResult->contentType);
-				$headers[] = "Content-Description: File Transfer";
-				$headers[] = sprintf('Content-Disposition: attachment; filename="%s"', basename($webApiResult->data->filename));
-				$headers[] = 'Content-Transfer-Encoding: binary';
-				$headers[] = 'Expires: 0';
-				$headers[] = 'Cache-Control: must-revalidate';
-				$headers[] = 'Pragma: public';
-				$headers[] = sprintf('Content-Length: %s', filesize($webApiResult->data->filename));
-				$result = file_get_contents($webApiResult->data->filename);
-				@unlink($webApiResult->data->filename);
-				break;
-            default:
-				$headers[] = "Content-type: text; charset=utf-8";                        
+    /**
+     * Sends the last result back to the client.
+     */
+    public function reply_client() {
+        self::$lasterror = error_get_last();
+        if (self::$lasterror != null) {
+            return;
         }
 
-        foreach($headers as $header){
+        $webapiresult = $this->lastresult;
+        $headers = self::get_default_headers();
+        $result = json_encode($webapiresult);
+
+        switch ($webapiresult->contenttype) {
+            case 'json':
+                $headers[] = "Content-type: application/json; charset=utf-8";
+                break;
+            case 'html':
+                $headers[] = "Content-type: text/html; charset=utf-8";
+                break;
+            case 'octet-stream':
+            case 'application/csv':
+            case 'application/xml':
+                $headers[] = sprintf("Content-type: %s", $webapiresult->contenttype);
+                $headers[] = "Content-Description: File Transfer";
+                $headers[] = sprintf('Content-Disposition: attachment; filename="%s"', basename($webapiresult->data->filename));
+                $headers[] = 'Content-Transfer-Encoding: binary';
+                $headers[] = 'Expires: 0';
+                $headers[] = 'Cache-Control: must-revalidate';
+                $headers[] = 'Pragma: public';
+                $headers[] = sprintf('Content-Length: %s', filesize($webapiresult->data->filename));
+                $result = file_get_contents($webapiresult->data->filename);
+                @unlink($webapiresult->data->filename);
+                break;
+            default:
+                $headers[] = "Content-type: text; charset=utf-8";
+        }
+
+        foreach ($headers as $header) {
             header($header);
         }
-        
-        if(ob_get_length() > 0){
+
+        if (ob_get_length() > 0) {
             ob_clean();
         }
-        
+
         flush();
         echo $result;
-	}
-		
-    protected function prepareJson($obj){
-        if(is_object($obj)){
+    }
+
+    /**
+     * Recursively converts DateTime properties to client-friendly strings.
+     *
+     * @param mixed $obj
+     */
+    protected function prepare_json($obj) {
+        if (is_object($obj)) {
             $tmp = get_object_vars($obj);
-            foreach($tmp as $attr => $value){
-                if($value instanceof DateTime){
-                    $obj->$attr = $this->phpDT2JsDT($value);
-                }
-                else if(is_array($value)){
-                    foreach($value as $item){
-                        $this->prepareJson($item);
+            foreach ($tmp as $attr => $value) {
+                if ($value instanceof DateTime) {
+                    $obj->$attr = $this->php_dt_to_js_dt($value);
+                } else if (is_array($value)) {
+                    foreach ($value as $item) {
+                        $this->prepare_json($item);
                     }
-                }
-                else if(is_object($value)){
-                    $this->prepareJson($value);
+                } else if (is_object($value)) {
+                    $this->prepare_json($value);
                 }
             }
         }
     }
 
     /**
-     * Convert the PHP DateTime Object to be sent to the client (JavaScript date time string)
+     * Convert the PHP DateTime Object to be sent to the client (JavaScript date time string).
+     *
+     * @param DateTime|null $value
+     * @return string
      */
-    protected function phpDT2JsDT($value){
-        // force the conversion to UTC date DateTime::ATOM
+    protected function php_dt_to_js_dt($value) {
+        // Force the conversion to UTC date DateTime::ATOM.
         return ($value == null ? "" : $value->format("Y-m-d H:i:s"));
     }
 
     /**
-     * Convert the JavaScript date string to PHP DateTime Object
+     * Convert the JavaScript date string to PHP DateTime Object.
+     *
+     * @param string|null $value
+     * @return DateTime|null
      */
-    protected function jsDT2PhpDT($value){
-        // force the conversion to UTC date
+    protected function js_dt_to_php_dt($value) {
+        // Force the conversion to UTC date.
         return (empty($value) ? null : new DateTime($value, new DateTimeZone("UTC")));
     }
 
-    protected function jsArray2PhpArray($request, $field){
-        if(isset($request[$field])){
-            if(strlen($request[$field]) > 0){
+    /**
+     * Splits a comma-separated request field into an array.
+     *
+     * @param array $request
+     * @param string $field
+     * @return array
+     */
+    protected function js_array_to_php_array($request, $field) {
+        if (isset($request[$field])) {
+            if (strlen($request[$field]) > 0) {
                 return explode(",", $request[$field]);
             }
         }
 
-        return array();
+        return [];
     }
 
-    protected function createCSVFile($filename, $content, $charset = "ISO-8859-1", $delimiter = ";"){
-        try{
+    /**
+     * Writes rows to a CSV file.
+     *
+     * @param string $filename
+     * @param array $content
+     * @param string $charset
+     * @param string $delimiter
+     * @return stdClass
+     */
+    protected function create_csv_file($filename, $content, $charset = "ISO-8859-1", $delimiter = ";") {
+        try {
             $fp = fopen($filename, 'w');
-            if(!$fp){ throw new Exception("FAILED: It was not possible to create the temporary file.");}
-    
-            foreach($content as $row){
-                $nbCols = count($row);
-                for($iCol = 0; $iCol < $nbCols; $iCol++){
-                    $row[$iCol] = utf8_decode($row[$iCol]);
+            if (!$fp) {
+                throw new Exception("FAILED: It was not possible to create the temporary file.");
+            }
+
+            foreach ($content as $row) {
+                $nbcols = count($row);
+                for ($icol = 0; $icol < $nbcols; $icol++) {
+                    $row[$icol] = utf8_decode($row[$icol]);
                 }
                 fputcsv($fp, $row, $delimiter);
             }
-            
+
             fclose($fp);
-    
+
             $data = new stdClass();
             $data->filename = $filename;
             $data->charset = $charset;
             return $data;
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             throw $ex;
-        }  
+        }
     }
 }
 
-abstract class MoodleApi extends AWebApi
-{
-    protected $signedUser = null;
+/**
+ * Moodle-specific WebApi dispatcher base class.
+ */
+abstract class MoodleApi extends AWebApi {
+    /** @var \stdClass the signed-in user */
+    protected $signeduser = null;
+
+    /** @var \stdClass the current course */
     protected $course = null;
-    protected $dbConn = null;
 
-    public function __construct($DB, $COURSE, $USER){
-        $this->signedUser = $USER;
-        $this->course = $COURSE;
-        $this->dbConn = $DB;
-        PersistCtrl::getInstance($DB, $USER);
+    /** @var \moodle_database the Moodle DB connection */
+    protected $dbconn = null;
+
+    /**
+     * Constructor.
+     *
+     * @param \moodle_database $db
+     * @param \stdClass $course
+     * @param \stdClass $user
+     */
+    public function __construct($db, $course, $user) {
+        $this->signeduser = $user;
+        $this->course = $course;
+        $this->dbconn = $db;
+        PersistCtrl::get_instance($db, $user);
     }
 }
 
-register_shutdown_function(function(){ return AWebApi::onPhpError(); });
+register_shutdown_function(function () {
+    return AWebApi::on_php_error();
+});

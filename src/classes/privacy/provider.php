@@ -28,10 +28,10 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
-use \core_privacy\local\metadata\collection;
-use \core_privacy\local\request\contextlist;
-use \core_privacy\local\request\writer;
-use \mod_assign\privacy\assign_plugin_request_data;
+use core_privacy\local\metadata\collection;
+use core_privacy\local\request\contextlist;
+use core_privacy\local\request\writer;
+use mod_assign\privacy\assign_plugin_request_data;
 use mod_assign\privacy\useridlist;
 
 /**
@@ -42,10 +42,9 @@ use mod_assign\privacy\useridlist;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements
-        \core_privacy\local\metadata\provider,
-        \mod_assign\privacy\assignfeedback_provider,
-        \mod_assign\privacy\assignfeedback_user_provider {
-
+    \core_privacy\local\metadata\provider,
+    \mod_assign\privacy\assignfeedback_provider,
+    \mod_assign\privacy\assignfeedback_user_provider {
     /**
      * Return meta data about this plugin.
      *
@@ -156,7 +155,7 @@ class provider implements
         $ids = $DB->get_fieldset_sql($sql, ['assignment' => $assignid]);
 
         if (!empty($ids)) {
-            list($insql, $params) = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
+            [$insql, $params] = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
             $DB->delete_records_select('assignfeedback_recitannotation', "id $insql", $params);
         }
     }
@@ -181,7 +180,7 @@ class provider implements
         $ids = $DB->get_fieldset_sql($sql, ['assignment' => $assignid, 'userid' => $userid]);
 
         if (!empty($ids)) {
-            list($insql, $params) = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
+            [$insql, $params] = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
             $DB->delete_records_select('assignfeedback_recitannotation', "id $insql", $params);
         }
     }
@@ -202,7 +201,7 @@ class provider implements
             return;
         }
 
-        list($usersql, $userparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'uid');
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'uid');
 
         $sql = "SELECT t1.id
                   FROM {assignfeedback_recitannotation} t1
@@ -213,7 +212,7 @@ class provider implements
         $ids = $DB->get_fieldset_sql($sql, $params);
 
         if (!empty($ids)) {
-            list($insql, $inparams) = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
+            [$insql, $inparams] = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
             $DB->delete_records_select('assignfeedback_recitannotation', "id $insql", $inparams);
         }
     }

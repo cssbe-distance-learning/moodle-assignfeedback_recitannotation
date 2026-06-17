@@ -15,52 +15,89 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Common base persistence controller shared across RECIT plugins.
+ *
  * @package   assignfeedback_recitannotation
- * @copyright 2025 RÉCIT 
+ * @copyright 2025 RECIT
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace recitannotation;
 
-abstract class APersistCtrl
-{
-   /**
-     * mysqli_native_moodle_database 
+defined('MOODLE_INTERNAL') || die();
+
+/**
+ * Base persistence controller providing cross-database SQL helpers.
+ */
+abstract class APersistCtrl {
+    /**
+     * @var \mysqli_native_moodle_database
      */
-    protected $mysqlConn;    
-    protected $signedUser;
+    protected $mysqlconn;
+
+    /** @var \stdClass the signed-in user */
+    protected $signeduser;
+
+    /** @var string the DB table prefix */
     protected $prefix = "";
-   
-    protected function __construct($mysqlConn, $signedUser){
+
+    /**
+     * Constructor.
+     *
+     * @param \moodle_database $mysqlconn
+     * @param \stdClass $signeduser
+     */
+    protected function __construct($mysqlconn, $signeduser) {
         global $CFG;
 
-        $this->mysqlConn = $mysqlConn;
-        $this->signedUser = $signedUser;
+        $this->mysqlconn = $mysqlconn;
+        $this->signeduser = $signeduser;
         $this->prefix = $CFG->prefix;
     }
 
-	public function checkSession(){
-        return (isset($this->signedUser) && $this->signedUser->id > 0);
+    /**
+     * Whether the current request has a valid signed-in user.
+     *
+     * @return bool
+     */
+    public function check_session() {
+        return (isset($this->signeduser) && $this->signeduser->id > 0);
     }
 
-    public function execSQL($sql, $params = array()){
-        $result = $this->mysqlConn->execute($sql, $params);
+    /**
+     * Executes a raw SQL statement.
+     *
+     * @param string $sql
+     * @param array $params
+     * @return bool
+     */
+    public function exec_sql($sql, $params = []) {
+        $result = $this->mysqlconn->execute($sql, $params);
         return $result;
     }
 
-    public function getRecordsSQL($sql, $params = array(), $ignoreUnderscore = false){
-        $result = $this->mysqlConn->get_records_sql($sql, $params);
-        
-        foreach($result as $item){
-            foreach((array)$item as $k => $v){
-                if(!$ignoreUnderscore){
-                    if (strpos($k, '_') != false){
-                        $key = preg_replace_callback("/_[a-z]?/", function($matches) {return strtoupper(ltrim($matches[0], "_"));}, $k);
+    /**
+     * Runs a SQL query and converts snake_case columns to camelCase properties.
+     *
+     * @param string $sql
+     * @param array $params
+     * @param bool $ignoreunderscore
+     * @return array
+     */
+    public function get_records_sql($sql, $params = [], $ignoreunderscore = false) {
+        $result = $this->mysqlconn->get_records_sql($sql, $params);
+
+        foreach ($result as $item) {
+            foreach ((array)$item as $k => $v) {
+                if (!$ignoreunderscore) {
+                    if (strpos($k, '_') != false) {
+                        $key = preg_replace_callback("/_[a-z]?/", function ($matches) {
+                            return strtoupper(ltrim($matches[0], "_"));
+                        }, $k);
                         $item->$key = $v;
                         unset($item->$k);
                     }
                 }
-                
             }
         }
         return array_values($result);
@@ -76,130 +113,211 @@ abstract class APersistCtrl
      */
     public function sql_group_concat(string $field, string $separator = ',', string $sort = ''): string {
         global $CFG;
-        if ($CFG->dbtype == 'pgsql'){
+        if ($CFG->dbtype == 'pgsql') {
             $fieldsort = $sort ? "ORDER BY {$sort}" : '';
             return "STRING_AGG(CAST({$field} AS VARCHAR), '{$separator}' {$fieldsort})";
-        }else{
+        } else {
             $fieldsort = $sort ? "ORDER BY {$sort}" : '';
             return "GROUP_CONCAT({$field} {$fieldsort} SEPARATOR '{$separator}')";
         }
     }
-    
+
+    /**
+     * Returns SQL testing whether a value is present in a comma-separated set.
+     *
+     * @param string $tofind
+     * @param string $field
+     * @return string
+     */
     public function sql_find_in_set(string $tofind, string $field): string {
         global $CFG;
-        // $tofind is embedded literally; callers must pass only safe, already-validated values.
+        // The "tofind" value is embedded literally; callers must pass only safe, already-validated values.
         $escaped = str_replace("'", "''", $tofind);
-        if ($CFG->dbtype == 'pgsql'){
+        if ($CFG->dbtype == 'pgsql') {
             return "'{$escaped}' = ANY (string_to_array($field,','))";
-        }else{
+        } else {
             return "FIND_IN_SET('{$escaped}', $field)";
         }
     }
-    
+
+    /**
+     * Returns SQL generating a unique identifier.
+     *
+     * @return string
+     */
     public function sql_uniqueid(): string {
         global $CFG;
-        if ($CFG->dbtype == 'pgsql'){
+        if ($CFG->dbtype == 'pgsql') {
             return "gen_random_uuid()";
-        }else{
+        } else {
             return "uuid()";
         }
     }
-    
+
+    /**
+     * Returns SQL converting a unix timestamp field to a datetime string.
+     *
+     * @param string $field
+     * @return string
+     */
     public function sql_from_unixtime($field): string {
         global $CFG;
-        if ($CFG->dbtype == 'pgsql'){
+        if ($CFG->dbtype == 'pgsql') {
             return "to_char(to_timestamp($field), 'yyyy-mm-dd HH24:MI:SS')";
-        }else{
+        } else {
             return "FROM_UNIXTIME($field)";
         }
     }
-    
+
+    /**
+     * Returns SQL converting a unix timestamp field to a database time value.
+     *
+     * @param string $field
+     * @return string
+     */
     public function sql_to_time($field): string {
         global $CFG;
-        if ($CFG->dbtype == 'pgsql'){
+        if ($CFG->dbtype == 'pgsql') {
             return "to_timestamp($field)";
-        }else{
+        } else {
             return "FROM_UNIXTIME($field)";
         }
     }
-    
+
+    /**
+     * Returns SQL converting a time field to seconds.
+     *
+     * @param string $field
+     * @return string
+     */
     public function sql_time_to_secs($field): string {
         global $CFG;
-        if ($CFG->dbtype == 'pgsql'){
+        if ($CFG->dbtype == 'pgsql') {
             return "EXTRACT(EPOCH FROM $field)";
-        }else{
+        } else {
             return "TIME_TO_SEC($field)";
         }
     }
-    
+
+    /**
+     * Returns SQL computing the day difference between two date fields.
+     *
+     * @param string $field
+     * @param string $field2
+     * @return string
+     */
     public function sql_datediff($field, $field2): string {
         global $CFG;
-        if ($CFG->dbtype == 'pgsql'){
+        if ($CFG->dbtype == 'pgsql') {
             return "EXTRACT(DAY FROM $field - $field2)";
-        }else{
+        } else {
             return "DATEDIFF($field, $field2)";
         }
     }
-    
+
+    /**
+     * Returns SQL casting a field to a string/text type.
+     *
+     * @param string $field
+     * @return string
+     */
     public function sql_caststring($field): string {
         global $CFG;
-        if ($CFG->dbtype == 'pgsql'){
+        if ($CFG->dbtype == 'pgsql') {
             return "CAST($field AS TEXT)";
-        }else{
+        } else {
             return "$field";
         }
     }
-    
+
+    /**
+     * Returns SQL casting a field to UTF-8.
+     *
+     * @param string $field
+     * @return string
+     */
     public function sql_castutf8($field): string {
         global $CFG;
-        if ($CFG->dbtype == 'pgsql'){
+        if ($CFG->dbtype == 'pgsql') {
             return "CAST($field AS TEXT)";
-        }else{
+        } else {
             return "CONVERT($field USING utf8)";
         }
     }
-    
+
+    /**
+     * Returns the database function name used to build a JSON object.
+     *
+     * @return string
+     */
     public function sql_tojson(): string {
         global $CFG;
-        if ($CFG->dbtype == 'pgsql'){
+        if ($CFG->dbtype == 'pgsql') {
             return "jsonb_build_object";
-        }else{
+        } else {
             return "JSON_OBJECT";
         }
     }
-    
+
+    /**
+     * Returns SQL converting a number of seconds to a time value.
+     *
+     * @param string $field
+     * @return string
+     */
     public function sql_sectotime($field): string {
         global $CFG;
-        if ($CFG->dbtype == 'pgsql'){
+        if ($CFG->dbtype == 'pgsql') {
             return "to_char( ($field ||' seconds')::interval, 'HH24:MM:SS' )";
-        }else{
+        } else {
             return "SEC_TO_TIME($field)";
         }
     }
 }
 
-abstract class MoodlePersistCtrl extends APersistCtrl{
-    public function getCmNameFromCmId($cmId, $courseId, $modData = false){
-        if ($courseId == 0){
+/**
+ * Moodle-specific persistence controller helpers.
+ */
+abstract class MoodlePersistCtrl extends APersistCtrl {
+    /**
+     * Returns the name of a course module given its course module id.
+     *
+     * @param int $cmid
+     * @param int $courseid
+     * @param \course_modinfo|bool $moddata
+     * @return string
+     */
+    public function get_cm_name_from_cm_id($cmid, $courseid, $moddata = false) {
+        if ($courseid == 0) {
             return "not_found";
         }
 
-        if(!$modData){
-            $modData = get_fast_modinfo($courseId);
+        if (!$moddata) {
+            $moddata = get_fast_modinfo($courseid);
         }
-        
-        foreach ($modData->cms as $cm) {
-            if ($cmId == $cm->id){
+
+        foreach ($moddata->cms as $cm) {
+            if ($cmid == $cm->id) {
                 return $cm->name;
             }
         }
     }
 
-    public function getCmFromCmId($cmId, $courseId, $modData = false){
-        if (!$modData) $modData = get_fast_modinfo($courseId);
-        
-        foreach ($modData->cms as $cm) {
-            if ($cmId == $cm->id){
+    /**
+     * Returns the course module given its course module id.
+     *
+     * @param int $cmid
+     * @param int $courseid
+     * @param \course_modinfo|bool $moddata
+     * @return \cm_info|null
+     */
+    public function get_cm_from_cm_id($cmid, $courseid, $moddata = false) {
+        if (!$moddata) {
+            $moddata = get_fast_modinfo($courseid);
+        }
+
+        foreach ($moddata->cms as $cm) {
+            if ($cmid == $cm->id) {
                 return $cm;
             }
         }

@@ -15,14 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Tests for the privacy provider.
+ *
  * @package   assignfeedback_recitannotation
  * @copyright 2025 RECIT
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace assignfeedback_recitannotation\tests;
-
-defined('MOODLE_INTERNAL') || die();
+namespace assignfeedback_recitannotation;
 
 use assignfeedback_recitannotation\privacy\provider;
 use core_privacy\local\metadata\collection;
@@ -34,15 +34,12 @@ use core_privacy\local\metadata\types\database_table;
  * @covers \assignfeedback_recitannotation\privacy\provider
  */
 class privacy_test extends \advanced_testcase {
-
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
     }
 
-    // -----------------------------------------------------------------------
-    // Metadata
-    // -----------------------------------------------------------------------
+    // Metadata.
 
     public function test_get_metadata_returns_collection(): void {
         $collection = new collection('assignfeedback_recitannotation');
@@ -69,15 +66,13 @@ class privacy_test extends \advanced_testcase {
         $table  = reset($items);
         $fields = $table->get_privacy_fields();
 
-        $this->assertArrayHasKey('submission',  $fields);
-        $this->assertArrayHasKey('ownerid',     $fields);
-        $this->assertArrayHasKey('annotation',  $fields);
-        $this->assertArrayHasKey('lastupdate',  $fields);
+        $this->assertArrayHasKey('submission', $fields);
+        $this->assertArrayHasKey('ownerid', $fields);
+        $this->assertArrayHasKey('annotation', $fields);
+        $this->assertArrayHasKey('lastupdate', $fields);
     }
 
-    // -----------------------------------------------------------------------
-    // Data deletion — context level
-    // -----------------------------------------------------------------------
+    // Data deletion at context level.
 
     public function test_delete_feedback_for_context_removes_annotations(): void {
         global $DB;
@@ -89,7 +84,7 @@ class privacy_test extends \advanced_testcase {
             'submission' => $submissionid,
             'ownerid'    => $teacher->id,
             'annotation' => '<p>Test annotation</p>',
-            'occurrences'=> '{}',
+            'occurrences' => '{}',
             'lastupdate' => time(),
         ]);
 
@@ -117,7 +112,7 @@ class privacy_test extends \advanced_testcase {
                 'submission' => $subid,
                 'ownerid'    => $teacher->id,
                 'annotation' => '<p>Annotation</p>',
-                'occurrences'=> '{}',
+                'occurrences' => '{}',
                 'lastupdate' => time(),
             ]);
         }
@@ -132,9 +127,7 @@ class privacy_test extends \advanced_testcase {
         $this->assertSame(1, $DB->count_records('assignfeedback_recitannotation', ['submission' => $subid2]));
     }
 
-    // -----------------------------------------------------------------------
-    // Helpers
-    // -----------------------------------------------------------------------
+    // Helpers.
 
     /**
      * Creates a minimal course + assign + teacher + student + submission.
@@ -178,7 +171,7 @@ class privacy_test extends \advanced_testcase {
      * Builds an assign_plugin_request_data mock for the given assign + user.
      */
     private function make_request_data(\stdClass $assigninstance, \stdClass $user): \mod_assign\privacy\assign_plugin_request_data {
-        global $DB, $CFG;
+        global $CFG;
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
         $cm     = get_coursemodule_from_instance('assign', $assigninstance->id);

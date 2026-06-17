@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Strings for component 'assignfeedback_recitannotation'.
+ *
  * @package assignfeedback_recitannotation
  * @copyright 2025 RECIT
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -64,7 +66,7 @@ $string['default_prompt_ai'] = "You are a strict JSON extractor. Analyse the tex
     "5. Each [[eX:word]] tag in the \"annotatedText\" field must have a corresponding UNIQUE entry in the \"corrections\" array.\n" .
     "6. The \"eX\" ID in the array must exactly match the ID visible in the text.\n\n" .
     "NOTE: Never use the ID (e1, e2) as a key name. Use \"id\": \"e1\".\n\n" .
-    "INSTRUCTION: Return ONLY the raw JSON object. No text before, no text after, no ```json tags.\n\n" .
+    "INSTRUCTION: Return ONLY the raw JSON object. No text before, no text after, no " . str_repeat(chr(96), 3) . "json tags.\n\n" .
     "TONE: The 'generalFeedback' field must be benevolent and encouraging.\n\n" .
     "CRITERIA TO USE (ID):\n" .
     "<<<\n" .

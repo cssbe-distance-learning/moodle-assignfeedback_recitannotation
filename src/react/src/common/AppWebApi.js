@@ -50,12 +50,12 @@ export class AppWebApi extends WebApi
     }
 
     getAnnotationFormKit(assignment, attemptnumber, userid, onSuccess){
-        let data = {assignment: assignment, attemptnumber: attemptnumber, userid: userid, service: "getAnnotationFormKit"};
+        let data = {assignment: assignment, attemptnumber: attemptnumber, userid: userid, service: "get_annotation_form_kit"};
         this.post(this.gateway, data, onSuccess);
     } 
 
     deleteAnnotation(id, assignment, onSuccess){
-        let data = {id: id, assignment: assignment, service: "deleteAnnotation"};
+        let data = {id: id, assignment: assignment, service: "delete_annotation"};
         this.post(this.gateway, data, onSuccess);
     }
 
@@ -65,22 +65,22 @@ export class AppWebApi extends WebApi
     } */
 
     deleteCriterion(id, assignment, onSuccess){
-        let data = {id: id, assignment: assignment, service: "deleteCriterion"};
+        let data = {id: id, assignment: assignment, service: "delete_criterion"};
         this.post(this.gateway, data, onSuccess);
     }
 
     deleteAllCriteria(assignment, onSuccess){
-        let data = {assignment: assignment, service: "deleteAllCriteria"};
+        let data = {assignment: assignment, service: "delete_all_criteria"};
         this.post(this.gateway, data, onSuccess);
     }
 
     importCriteriaList(data, onSuccess){
-        data = {data: data, service: "importCriteriaList"};
+        data = {data: data, service: "import_criteria_list"};
         this.post(this.gateway, data, onSuccess); 
     }
 
     changeCriterionSortOrder(id, direction, assignment, onSuccess){
-        let data = {id: id, direction: direction, assignment: assignment, service: "changeCriterionSortOrder"};
+        let data = {id: id, direction: direction, assignment: assignment, service: "change_criterion_sort_order"};
         this.post(this.gateway, data, onSuccess); 
     }
 
@@ -93,7 +93,7 @@ export class AppWebApi extends WebApi
             }
         };
 
-        let options = {data: data, service: "saveCriterion"};
+        let options = {data: data, service: "save_criterion"};
         this.post(this.gateway, options, onSuccessTmp, null, true);
     }
 
@@ -106,12 +106,12 @@ export class AppWebApi extends WebApi
             }
         };
 
-        let options = {data: data, assignment: assignment, service: "saveAnnotation"};
+        let options = {data: data, assignment: assignment, service: "save_annotation"};
         this.post(this.gateway, options, onSuccessTmp, null, true);
     }
 
     deleteComment(id, assignment, onSuccess){
-        let data = {id: id, assignment: assignment, service: "deleteComment"};
+        let data = {id: id, assignment: assignment, service: "delete_comment"};
         this.post(this.gateway, data, onSuccess);
     }
 
@@ -124,7 +124,7 @@ export class AppWebApi extends WebApi
             }
         };
 
-        let options = {data: data, assignment: assignment, service: "saveComment"};
+        let options = {data: data, assignment: assignment, service: "save_comment"};
         this.post(this.gateway, options, onSuccessTmp, null, true);
     }
 
@@ -137,7 +137,7 @@ export class AppWebApi extends WebApi
             }
         };
 
-        let options = {data: data, service: "savePromptAi"};
+        let options = {data: data, service: "save_prompt_ai"};
         this.post(this.gateway, options, onSuccessTmp, null, true);
     }
 
@@ -150,7 +150,7 @@ export class AppWebApi extends WebApi
             }
         };
 
-        let options = {payload: payload, assignment: assignment, service: "callAzureAI"};
+        let options = {payload: payload, assignment: assignment, service: "call_azure_ai"};
         this.post(this.gateway, options, onSuccessTmp, null, true, timeout);
     }
 };

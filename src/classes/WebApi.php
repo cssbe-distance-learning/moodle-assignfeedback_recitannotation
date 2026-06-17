@@ -15,222 +15,292 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * AJAX service dispatcher for the recitannotation assign feedback plugin.
+ *
  * @package   assignfeedback_recitannotation
- * @copyright 2025 RÉCIT 
+ * @copyright 2025 RECIT
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace recitannotation;
 
-require_once(dirname(__FILE__).'../../../../../../config.php');
-require_once dirname(__FILE__).'/recitcommon/WebApi.php';
-require_once dirname(__FILE__).'/PersistCtrl.php';
-require_once dirname(__FILE__).'/Options.php';
+require_once(dirname(__FILE__) . '/../../../../../../config.php');
+require_login(null, false, null, false, true);
+require_once(dirname(__FILE__) . '/recitcommon/WebApi.php');
+require_once(dirname(__FILE__) . '/PersistCtrl.php');
+require_once(dirname(__FILE__) . '/Options.php');
 
 use Exception;
 use stdClass;
 
-class WebApi extends MoodleApi
-{
+/**
+ * AJAX service dispatcher for the recitannotation assign feedback plugin.
+ */
+class WebApi extends MoodleApi {
+    /** @var PersistCtrl */
     protected $ctrl = null;
-    
-    public function __construct($DB, $COURSE, $USER){
-        parent::__construct($DB, $COURSE, $USER);
-        $this->ctrl = PersistCtrl::getInstance($DB, $USER);
+
+    /**
+     * Constructor.
+     *
+     * @param \moodle_database $db
+     * @param \stdClass $course
+     * @param \stdClass $user
+     */
+    public function __construct($db, $course, $user) {
+        parent::__construct($db, $course, $user);
+        $this->ctrl = PersistCtrl::get_instance($db, $user);
     }
 
-    protected function getAllowedServices(): array {
+    /**
+     * Returns the list of service method names this API allows clients to call.
+     *
+     * @return array
+     */
+    protected function get_allowed_services(): array {
         return [
-            'getAnnotationFormKit',
-            'deleteAnnotation',
-            'saveCriterion',
-            'deleteCriterion',
-            'deleteAllCriteria',
-            'saveAnnotation',
-            'saveComment',
-            'deleteComment',
-            'exportCriteriaList',
-            'importCriteriaList',
-            'changeCriterionSortOrder',
-            'callAzureAI',
-            'savePromptAi',
+            'get_annotation_form_kit',
+            'delete_annotation',
+            'save_criterion',
+            'delete_criterion',
+            'delete_all_criteria',
+            'save_annotation',
+            'save_comment',
+            'delete_comment',
+            'export_criteria_list',
+            'import_criteria_list',
+            'change_criterion_sort_order',
+            'call_azure_ai',
+            'save_prompt_ai',
         ];
     }
 
     /**
-     * $level [a = admin | s = student]
+     * Checks whether the current user is allowed to act at the given access level.
+     *
+     * $level: "a" = admin/teacher, "s" = student.
+     *
+     * @param string $level
+     * @param int $assignment
+     * @return bool
      */
-    public function canUserAccess($level, $assignment){        
-        $isTeacher = $this->ctrl->hasTeacherAccess($assignment);
-        
-         // if the level is admin then the user must have access to CAPABILITY
-        if(($level == 'a') && $isTeacher){
+    public function can_user_access($level, $assignment) {
+        $isteacher = $this->ctrl->has_teacher_access($assignment);
+
+        // If the level is admin then the user must have access to CAPABILITY.
+        if (($level == 'a') && $isteacher) {
             return true;
-        }
-        // if the user is student then it has access only if it is accessing its own stuff
-        else if(($level == 's')){
+        } else if (($level == 's')) {
+            // If the user is student then it has access only if it is accessing its own stuff.
             return true;
-        }
-        else{
+        } else {
             throw new Exception(get_string('access_denied', 'assignfeedback_recitannotation'));
         }
     }
-    
-    public function getAnnotationFormKit($request){
-        try{            
+
+    /**
+     * Returns the annotation, criteria, comments and AI prompt needed by the grading form.
+     *
+     * @param array $request
+     * @return WebApiResult
+     */
+    public function get_annotation_form_kit($request) {
+        try {
             $assignment = clean_param($request['assignment'], PARAM_INT);
             $attemptnumber = clean_param($request['attemptnumber'], PARAM_INT);
             $userid = clean_param($request['userid'], PARAM_INT);
 
-            $this->canUserAccess('a', $assignment);
+            $this->can_user_access('a', $assignment);
 
             $result = new stdClass();
-            $result->annotation = $this->ctrl->getAnnotation($assignment, $userid, $attemptnumber);
-            $result->criteriaList = $this->ctrl->getCriteriaList($assignment);
-            $result->commentList = $this->ctrl->getCommentList($assignment);
-            $result->promptAi = $this->ctrl->getPromptAi($assignment);
-            $this->prepareJson($result);
+            $result->annotation = $this->ctrl->get_annotation($assignment, $userid, $attemptnumber);
+            $result->criteriaList = $this->ctrl->get_criteria_list($assignment);
+            $result->commentList = $this->ctrl->get_comment_list($assignment);
+            $result->promptAi = $this->ctrl->get_prompt_ai($assignment);
+            $this->prepare_json($result);
             return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
-    public function deleteAnnotation($request){
-        try{
+    /**
+     * Deletes an annotation.
+     *
+     * @param array $request
+     * @return WebApiResult
+     */
+    public function delete_annotation($request) {
+        try {
             $assignment = clean_param($request['assignment'], PARAM_INT);
             $id = clean_param($request['id'], PARAM_INT);
 
-            $this->canUserAccess('a', $assignment);
+            $this->can_user_access('a', $assignment);
 
-            $this->ctrl->deleteAnnotation($id, $assignment);
+            $this->ctrl->delete_annotation($id, $assignment);
             return new WebApiResult(true);
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
-    public function saveCriterion($request){
-        try{
-            $data = json_decode(json_encode($request['data']), FALSE);
+    /**
+     * Saves (inserts or updates) a criterion.
+     *
+     * @param array $request
+     * @return WebApiResult
+     */
+    public function save_criterion($request) {
+        try {
+            $data = json_decode(json_encode($request['data']), false);
 
-            $data->id              = clean_param($data->id,              PARAM_INT);
-            $data->assignment      = clean_param($data->assignment,      PARAM_INT);
-            $data->name            = clean_param($data->name,            PARAM_TEXT);
-            $data->description     = clean_param($data->description,     PARAM_TEXT);
+            $data->id = clean_param($data->id, PARAM_INT);
+            $data->assignment = clean_param($data->assignment, PARAM_INT);
+            $data->name = clean_param($data->name, PARAM_TEXT);
+            $data->description = clean_param($data->description, PARAM_TEXT);
             $data->backgroundcolor = clean_param($data->backgroundcolor, PARAM_TEXT);
-            $data->sortorder       = clean_param($data->sortorder,       PARAM_INT);
-            $data->instruction_ai  = clean_param($data->instruction_ai,  PARAM_RAW);
+            $data->sortorder = clean_param($data->sortorder, PARAM_INT);
+            $data->instruction_ai = clean_param($data->instruction_ai, PARAM_RAW);
 
-            $this->canUserAccess('a', $data->assignment);
+            $this->can_user_access('a', $data->assignment);
 
-            $result = $this->ctrl->saveCriterion($data);
+            $result = $this->ctrl->save_criterion($data);
 
             return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
-    public function deleteCriterion($request){
-        try{
+    /**
+     * Deletes a criterion.
+     *
+     * @param array $request
+     * @return WebApiResult
+     */
+    public function delete_criterion($request) {
+        try {
             $assignment = clean_param($request['assignment'], PARAM_INT);
             $id = clean_param($request['id'], PARAM_INT);
 
-            $this->canUserAccess('a', $assignment);
+            $this->can_user_access('a', $assignment);
 
-            $this->ctrl->deleteCriterion($id, $assignment);
+            $this->ctrl->delete_criterion($id, $assignment);
             return new WebApiResult(true);
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
-    public function deleteAllCriteria($request){
-        try{
+    /**
+     * Deletes all criteria for an assignment.
+     *
+     * @param array $request
+     * @return WebApiResult
+     */
+    public function delete_all_criteria($request) {
+        try {
             $assignment = clean_param($request['assignment'], PARAM_INT);
 
-            $this->canUserAccess('a', $assignment);
+            $this->can_user_access('a', $assignment);
 
-            $this->ctrl->deleteAllCriteria($assignment);
+            $this->ctrl->delete_all_criteria($assignment);
             return new WebApiResult(true);
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
-    public function saveAnnotation($request){
-        try{
-            $data = json_decode(json_encode($request['data']), FALSE);
+    /**
+     * Saves (inserts or updates) an annotation.
+     *
+     * @param array $request
+     * @return WebApiResult
+     */
+    public function save_annotation($request) {
+        try {
+            $data = json_decode(json_encode($request['data']), false);
             $assignment = clean_param($request['assignment'], PARAM_INT);
 
-            $data->id         = clean_param($data->id,         PARAM_INT);
+            $data->id = clean_param($data->id, PARAM_INT);
             $data->submission = clean_param($data->submission, PARAM_INT);
-            $data->annotation = clean_param($data->annotation, PARAM_RAW); // intentional HTML: teacher-authored annotation markup
-            if(is_object($data->occurrences)){
-                foreach($data->occurrences as $key => $val){
+            // Intentional HTML: teacher-authored annotation markup.
+            $data->annotation = clean_param($data->annotation, PARAM_RAW);
+            if (is_object($data->occurrences)) {
+                foreach ($data->occurrences as $key => $val) {
                     $data->occurrences->$key = (int)$val;
                 }
             }
 
-            $this->canUserAccess('a', $assignment);
+            $this->can_user_access('a', $assignment);
 
-            $result = $this->ctrl->saveAnnotation($data, $assignment);
+            $result = $this->ctrl->save_annotation($data, $assignment);
 
             return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
-    public function saveComment($request){
-        try{
-            $data = json_decode(json_encode($request['data']), FALSE);
+    /**
+     * Saves (inserts or updates) a comment.
+     *
+     * @param array $request
+     * @return WebApiResult
+     */
+    public function save_comment($request) {
+        try {
+            $data = json_decode(json_encode($request['data']), false);
             $assignment = clean_param($request['assignment'], PARAM_INT);
 
-            $data->id          = clean_param($data->id,          PARAM_INT);
+            $data->id = clean_param($data->id, PARAM_INT);
             $data->criterionid = clean_param($data->criterionid, PARAM_INT);
-            $data->comment     = clean_param($data->comment,     PARAM_TEXT);
+            $data->comment = clean_param($data->comment, PARAM_TEXT);
 
-            $this->canUserAccess('a', $assignment);
+            $this->can_user_access('a', $assignment);
 
-            $result = $this->ctrl->saveComment($data, $assignment);
+            $result = $this->ctrl->save_comment($data, $assignment);
 
             return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
-    public function deleteComment($request){
-        try{
+    /**
+     * Deletes a comment.
+     *
+     * @param array $request
+     * @return WebApiResult
+     */
+    public function delete_comment($request) {
+        try {
             $id = clean_param($request['id'], PARAM_INT);
             $assignment = clean_param($request['assignment'], PARAM_INT);
 
-            $this->canUserAccess('a', $assignment);
+            $this->can_user_access('a', $assignment);
 
-            $this->ctrl->deleteComment($id, $assignment);
+            $this->ctrl->delete_comment($id, $assignment);
             return new WebApiResult(true);
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
-    public function exportCriteriaList($request){
-        try{
+    /**
+     * Exports the criteria list, comments and AI prompt as an XML file.
+     *
+     * @param array $request
+     * @return WebApiResult
+     */
+    public function export_criteria_list($request) {
+        try {
             $assignment = clean_param($request['assignment'], PARAM_INT);
-            $this->canUserAccess('a', $assignment);
+            $this->can_user_access('a', $assignment);
 
-            $criteriaList = $this->ctrl->getCriteriaList($assignment);
-            $commentList = $this->ctrl->getCommentList($assignment);
-            $promptAiList = $this->ctrl->getPromptAi($assignment);
+            $criterialist = $this->ctrl->get_criteria_list($assignment);
+            $commentlist = $this->ctrl->get_comment_list($assignment);
+            $promptailist = $this->ctrl->get_prompt_ai($assignment);
 
             $doc = new \DOMDocument('1.0', 'UTF-8');
             $doc->formatOutput = true;
@@ -238,108 +308,122 @@ class WebApi extends MoodleApi
             $root = $doc->createElement('root');
             $doc->appendChild($root);
 
-            $promptAi = $doc->createElement('prompt_ai');
-            $root->appendChild($promptAi);
+            $promptai = $doc->createElement('prompt_ai');
+            $root->appendChild($promptai);
             $payload = $doc->createElement('payload');
-            $payload->appendChild($doc->createCDATASection($promptAiList->prompt_ai));
-            $promptAi->appendChild($payload);
+            $payload->appendChild($doc->createCDATASection($promptailist->prompt_ai));
+            $promptai->appendChild($payload);
 
             $criteria = $doc->createElement('criteria');
             $root->appendChild($criteria);
 
-            foreach($criteriaList as $criterionData){
+            foreach ($criterialist as $criteriondata) {
                 $criterion = $doc->createElement('criterion');
-                $criterion->appendChild($doc->createElement('name', $criterionData->name));
-                $criterion->appendChild($doc->createElement('description', $criterionData->description));
-                $criterion->appendChild($doc->createElement('backgroundcolor', $criterionData->backgroundcolor));
-                $criterion->appendChild($doc->createElement('sortorder', $criterionData->sortorder));
-                $criterion->appendChild($doc->createElement('instruction_ai', $criterionData->instruction_ai));
+                $criterion->appendChild($doc->createElement('name', $criteriondata->name));
+                $criterion->appendChild($doc->createElement('description', $criteriondata->description));
+                $criterion->appendChild($doc->createElement('backgroundcolor', $criteriondata->backgroundcolor));
+                $criterion->appendChild($doc->createElement('sortorder', $criteriondata->sortorder));
+                $criterion->appendChild($doc->createElement('instruction_ai', $criteriondata->instruction_ai));
                 $criteria->appendChild($criterion);
 
                 $comments = $doc->createElement('comments');
                 $criterion->appendChild($comments);
 
-                foreach($commentList as $commentData){
-                    if($commentData->criterionid != $criterionData->id){
+                foreach ($commentlist as $commentdata) {
+                    if ($commentdata->criterionid != $criteriondata->id) {
                         continue;
                     }
                     $comment = $doc->createElement('comment');
-                    $comment->appendChild($doc->createElement('comment', $commentData->comment));
+                    $comment->appendChild($doc->createElement('comment', $commentdata->comment));
                     $comments->appendChild($comment);
                 }
-                
             }
-           
+
             $file = new stdClass();
             $file->filename = tempnam(sys_get_temp_dir(), 'recitannot_export_') . ".xml";
             $file->charset = 'UTF-8';
             $doc->save($file->filename);
 
             return new WebApiResult(true, $file, "", 'application/xml');
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             return new WebApiResult(false, null, $ex->getMessage());
         }
     }
 
-    public function importCriteriaList($request){
-        try{
-            $data = json_decode(json_encode($request['data']), FALSE);
+    /**
+     * Imports a criteria list (and AI prompt) from an exported XML file.
+     *
+     * @param array $request
+     * @return WebApiResult
+     */
+    public function import_criteria_list($request) {
+        try {
+            $data = json_decode(json_encode($request['data']), false);
 
-            $data->assignment  = clean_param($data->assignment,  PARAM_INT);
+            $data->assignment = clean_param($data->assignment, PARAM_INT);
             $data->fileContent = clean_param($data->fileContent, PARAM_RAW);
 
-            $this->canUserAccess('a', $data->assignment);
+            $this->can_user_access('a', $data->assignment);
 
-            $this->ctrl->importCriteriaList($data);
+            $this->ctrl->import_criteria_list($data);
             return new WebApiResult(true);
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             return new WebApiResult(false, null, $ex->getMessage());
         }
     }
-    
-    public function changeCriterionSortOrder($request){
-        try{
+
+    /**
+     * Moves a criterion up or down in the sort order.
+     *
+     * @param array $request
+     * @return WebApiResult
+     */
+    public function change_criterion_sort_order($request) {
+        try {
             $id = clean_param($request['id'], PARAM_INT);
             $direction = clean_param($request['direction'], PARAM_TEXT);
             $assignment = clean_param($request['assignment'], PARAM_INT);
 
-            $this->canUserAccess('a', $assignment);
+            $this->can_user_access('a', $assignment);
 
-            $result = $this->ctrl->changeCriterionSortOrder($id, $direction, $assignment);
+            $result = $this->ctrl->change_criterion_sort_order($id, $direction, $assignment);
             return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 
-    public function callAzureAI($request){
-        try{
+    /**
+     * Forwards the student text and prompt to the configured Azure AI endpoint.
+     *
+     * @param array $request
+     * @return WebApiResult
+     */
+    public function call_azure_ai($request) {
+        try {
             $assignment = clean_param($request['assignment'], PARAM_INT);
-            $payload = json_decode(json_encode($request['payload']), FALSE);
+            $payload = json_decode(json_encode($request['payload']), false);
 
-            $this->canUserAccess('a', $assignment);
+            $this->can_user_access('a', $assignment);
 
-            // Replace these with your Azure details
-            $endpoint = Options::getAiApiEndpoint();
-            $api_key = Options::getAiApiKey();
+            // Replace these with your Azure details.
+            $endpoint = Options::get_ai_api_endpoint();
+            $apikey = Options::get_ai_api_key();
 
-            // Setup headers
+            // Setup headers.
             $headers = [
                 "Content-Type: application/json",
-                "api-key: $api_key"
+                "api-key: $apikey",
             ];
 
-            // Initialize cURL
+            // Initialize cURL.
             $ch = curl_init($endpoint);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-            // Execute request
+            // Execute request.
             $response = curl_exec($ch);
 
             if (curl_errno($ch)) {
@@ -351,35 +435,38 @@ class WebApi extends MoodleApi
             unset($ch);
 
             return new WebApiResult(true, json_decode($response));
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             return new WebApiResult(false, null, $ex->getMessage());
         }
     }
 
-    public function savePromptAi($request){
-        try{
-            $data = json_decode(json_encode($request['data']), FALSE);
+    /**
+     * Saves (inserts or updates) the AI prompt for an assignment.
+     *
+     * @param array $request
+     * @return WebApiResult
+     */
+    public function save_prompt_ai($request) {
+        try {
+            $data = json_decode(json_encode($request['data']), false);
 
-            $data->id         = clean_param($data->id,         PARAM_INT);
+            $data->id = clean_param($data->id, PARAM_INT);
             $data->assignment = clean_param($data->assignment, PARAM_INT);
-            $data->prompt_ai  = clean_param($data->prompt_ai,  PARAM_RAW);
+            $data->prompt_ai = clean_param($data->prompt_ai, PARAM_RAW);
 
-            $this->canUserAccess('a', $data->assignment);
+            $this->can_user_access('a', $data->assignment);
 
-            $result = $this->ctrl->savePromptAi($data);
+            $result = $this->ctrl->save_prompt_ai($data);
 
             return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
+        } catch (Exception $ex) {
             return new WebApiResult(false, false, $ex->getMessage());
         }
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////
 $PAGE->set_context(\context_system::instance());
 $webapi = new WebApi($DB, $COURSE, $USER);
-$webapi->getRequest($_REQUEST);
-$webapi->processRequest();
-$webapi->replyClient();
+$webapi->get_request();
+$webapi->process_request();
+$webapi->reply_client();

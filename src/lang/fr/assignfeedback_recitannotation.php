@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Strings for component 'assignfeedback_recitannotation'.
+ *
  * @package assignfeedback_recitannotation
  * @copyright 2025 RECIT
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -64,7 +66,7 @@ $string['default_prompt_ai'] = "Tu es un extracteur JSON strict. Analyse le text
     "5. Chaque balise [[eX:mot]] dans le champ \"annotatedText\" doit avoir une entrée correspondante UNIQUE dans le tableau \"corrections\".\n" .
     "6. L'ID \"eX\" dans le tableau doit correspondre exactement à l'ID visible dans le texte.\n\n" .
     "REMARQUE : N'utilise jamais l'ID (e1, e2) comme nom de clé. Utilise \"id\": \"e1\".\n\n" .
-    "CONSIGNE : Retourne UNIQUEMENT l'objet JSON brut. Pas de texte avant, pas de texte après, pas de balises ```json.\n\n" .
+    "CONSIGNE : Retourne UNIQUEMENT l'objet JSON brut. Pas de texte avant, pas de texte après, pas de balises " . str_repeat(chr(96), 3) . "json.\n\n" .
     "TONALITÉ : Le champ 'generalFeedback' doit être bienveillant et encourageant.\n\n" .
     "CRITÈRES À UTILISER (ID) :\n" .
     "<<<\n" .

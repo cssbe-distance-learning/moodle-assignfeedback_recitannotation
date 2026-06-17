@@ -15,39 +15,67 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Plugin configuration accessors.
+ *
  * @package   assignfeedback_recitannotation
- * @copyright 2025 RÉCIT 
+ * @copyright 2025 RECIT
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace recitannotation;
- 
-class Options
-{
-    static function getAiApiEndpoint(){ 
+
+/**
+ * Reads the plugin's admin settings.
+ */
+class Options {
+    /**
+     * Returns the configured AI API endpoint.
+     *
+     * @return string
+     */
+    public static function get_ai_api_endpoint() {
         return get_config('assignfeedback_recitannotation', 'ai_api_endpoint');
     }
 
-    static function getAiModel(){ 
+    /**
+     * Returns the configured AI model.
+     *
+     * @return string
+     */
+    public static function get_ai_model() {
         return get_config('assignfeedback_recitannotation', 'ai_model');
     }
 
-    static function getAiApiKey(){ 
+    /**
+     * Returns the configured AI API key.
+     *
+     * @return string
+     */
+    public static function get_ai_api_key() {
         return get_config('assignfeedback_recitannotation', 'ai_api_key');
     }
 
-    static function getUrlDocumentation(){ 
+    /**
+     * Returns the configured documentation URL.
+     *
+     * @return string
+     */
+    public static function get_url_documentation() {
         return get_config('assignfeedback_recitannotation', 'url_documentation');
     }
 
-    static function isAiApiActive(){
-        $endpoint = Options::getAiApiEndpoint();
-        $api_key = Options::getAiApiKey();
+    /**
+     * Whether the AI API has been configured (endpoint and key both set).
+     *
+     * @return bool
+     */
+    public static function is_ai_api_active() {
+        $endpoint = self::get_ai_api_endpoint();
+        $apikey = self::get_ai_api_key();
 
-        if((strlen($endpoint) > 0) && (strlen($api_key) > 0)){
+        if ((strlen($endpoint) > 0) && (strlen($apikey) > 0)) {
             return true;
-        }
-        else{
+        } else {
             return false;
         }
     }

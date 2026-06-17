@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Library of functions for the recitannotation assign feedback plugin.
+ *
  * @package assignfeedback_recitannotation
  * @copyright 2025 RECIT
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -24,19 +26,17 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot . '/mod/assign/locallib.php');
-require_once(dirname(__FILE__).'/classes/Options.php');
-require_once(dirname(__FILE__).'/classes/PersistCtrl.php');
-
-//define('ASSIGNFEEDBACK_RECITANNOTATION_FILEAREA', 'feedback');
-//define('ASSIGNFEEDBACK_RECITANNOTATION_COMPONENT', 'assignfeedback_recitannotation');
+require_once(dirname(__FILE__) . '/classes/Options.php');
+require_once(dirname(__FILE__) . '/classes/PersistCtrl.php');
 
 /**
+ * Text annotation assign feedback plugin.
+ *
  * @package assignfeedback_recitannotation
  * @copyright 2025 RECIT
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class assign_feedback_recitannotation extends assign_feedback_plugin {
-
     /**
      * Get the name of the file feedback plugin.
      *
@@ -47,27 +47,6 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
     }
 
     /**
-     * Get file areas returns a list of areas this plugin stores files.
-     *
-     * @return array - An array of fileareas (keys) and descriptions (values)
-     */
-    /*public function get_file_areas() {
-        return array(ASSIGNFEEDBACK_RECITANNOTATION_FILEAREA=>$this->get_name());
-    }*/
-
-    /**
-     * Return a description of external params suitable for uploading an feedback comment from a webservice.
-     *
-     * @return \core_external\external_description|null
-     */
-    /*public function get_external_parameters() {
-        $editorparams = array('text' => new external_value(PARAM_RAW, 'The text for this feedback.'),
-                              'format' => new external_value(PARAM_INT, 'The format for this feedback'));
-        $editorstructure = new external_single_structure($editorparams, 'Editor structure', VALUE_OPTIONAL);
-        return array('assignfeedbackrecitannotation_editor' => $editorstructure);
-    }*/
-
-    /**
      * Get form elements for the grading page
      *
      * @param stdClass|null $grade
@@ -75,66 +54,77 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
      * @param stdClass $data
      * @return bool true if elements were added to the form
      */
-    public function get_form_elements_for_user($grade, MoodleQuickForm $mform, stdClass $data, $userid) {        
+    public function get_form_elements_for_user($grade, MoodleQuickForm $mform, stdClass $data, $userid) {
         global $PAGE, $DB, $USER, $CFG;
 
-        $persistCtrl = \recitannotation\PersistCtrl::getInstance($DB, $USER);
- 
-        $data = $persistCtrl->getAnnotation($grade->assignment, $userid, $grade->attemptnumber);
-        
-        $group[] = $mform->createElement('static', '', '', "<div id='assignfeedback_recitannotation' style='position: sticky; top: 0;' class='bg-white rounded'></div>");
-        
+        $persistctrl = \recitannotation\PersistCtrl::get_instance($DB, $USER);
+
+        $data = $persistctrl->get_annotation($grade->assignment, $userid, $grade->attemptnumber);
+
+        $containerhtml = "<div id='assignfeedback_recitannotation' style='position: sticky; top: 0;' class='bg-white rounded'></div>";
+        $group[] = $mform->createElement('static', '', '', $containerhtml);
+
         $html = html_writer::script('', "{$CFG->wwwroot}/mod/assign/feedback/recitannotation/react/build/index.js");
         $html .= "<link href='{$CFG->wwwroot}/mod/assign/feedback/recitannotation/react/build/index.css' rel='stylesheet'></link>";
-        
-        $strings = array('pluginname' => '', 'msg_action_completed' => '', 'msg_confirm_deletion' => '', 'student_production' => '',
-                    'undo' => '', 'redo' => '', 'clean_student_production' => '', 'annotate' => '', 'ask_ai' => '',
-                    'occurrences' => '', 'criterion' => '', 'count' => '', 'msg_confirm_clean_html_code' => '', 'select_item' => '',
-                    'comment' => '', 'search_comment' => '', 'add_edit_comment' => '', 'delete' => '', 'cancel' => '',
-                    'save' => '', 'msg_required_field' => '', 'msg_error_highlighting' => '', 'ask_question' => '', 'ask' => '',
-                    'back_annotation_view' => '', 'criteria_list' => '', 'comment_list' => '', 'add_new_item' => '', 'import_criteria' => '',
-                    'export_criteria' => '', 'name' => '', 'description' => '', 'color' => '', 'edit' => '',
-                    'move_up' => '', 'move_down' => '', 'only_lowercase' => '', 'add_edit_criterion' => '', 'ok' => '', 'delete_criterion' => '',
-                    'quick_annotation_method' => '', 'add_edit_annotation' => '', 'print_comment_list' => '', 'prompt' => '',
-                    'input' => '', 'output' => '', 'result' => '', 'apply' => '',
-                    'prompt_ai' => '', 'add_edit_prompt_ai' => '', 'prompt_ai_help' => '', 'instruction_ai' => '',
-                    'select_criteria' => '', 'review_prompt' => '', 'generate_prompt' => '', 'msg_ai_student_text_prefix' => '',
-                    'documentation_download' => '', 'delete_all' => '', 'reset_annotation' => '', 'click_to_filter' => '',
-                    'msg_confirm_ai_correction' => '', 'msg_confirm_reset_annotation' => '',
-                    'err_no_ai_response' => '', 'err_ai_refused' => '', 'err_ai_response_too_long' => '',
-                    'err_ai_json_format' => '', 'err_criterion_not_found' => '',
-                    'student_work_placeholder' => '', 'default_prompt_ai' => '',
-                    'analysis_in_progress' => '', 'time_elapsed' => '', 'cancel_request' => '',
-                    'schema_annotated_text_desc' => '', 'schema_general_feedback_desc' => '',
-                    'schema_explanation_desc' => '', 'schema_strategy_desc' => '', 'schema_criterion_desc' => '');
-        
-        foreach($strings as $key => $value){
+
+        $strings = [
+            'pluginname' => '', 'msg_action_completed' => '', 'msg_confirm_deletion' => '', 'student_production' => '',
+            'undo' => '', 'redo' => '', 'clean_student_production' => '', 'annotate' => '', 'ask_ai' => '',
+            'occurrences' => '', 'criterion' => '', 'count' => '', 'msg_confirm_clean_html_code' => '', 'select_item' => '',
+            'comment' => '', 'search_comment' => '', 'add_edit_comment' => '', 'delete' => '', 'cancel' => '',
+            'save' => '', 'msg_required_field' => '', 'msg_error_highlighting' => '', 'ask_question' => '', 'ask' => '',
+            'back_annotation_view' => '', 'criteria_list' => '', 'comment_list' => '', 'add_new_item' => '',
+            'import_criteria' => '', 'export_criteria' => '', 'name' => '', 'description' => '', 'color' => '', 'edit' => '',
+            'move_up' => '', 'move_down' => '', 'only_lowercase' => '', 'add_edit_criterion' => '', 'ok' => '',
+            'delete_criterion' => '', 'quick_annotation_method' => '', 'add_edit_annotation' => '',
+            'print_comment_list' => '', 'prompt' => '', 'input' => '', 'output' => '', 'result' => '', 'apply' => '',
+            'prompt_ai' => '', 'add_edit_prompt_ai' => '', 'prompt_ai_help' => '', 'instruction_ai' => '',
+            'select_criteria' => '', 'review_prompt' => '', 'generate_prompt' => '', 'msg_ai_student_text_prefix' => '',
+            'documentation_download' => '', 'delete_all' => '', 'reset_annotation' => '', 'click_to_filter' => '',
+            'msg_confirm_ai_correction' => '', 'msg_confirm_reset_annotation' => '',
+            'err_no_ai_response' => '', 'err_ai_refused' => '', 'err_ai_response_too_long' => '',
+            'err_ai_json_format' => '', 'err_criterion_not_found' => '',
+            'student_work_placeholder' => '', 'default_prompt_ai' => '',
+            'analysis_in_progress' => '', 'time_elapsed' => '', 'cancel_request' => '',
+            'schema_annotated_text_desc' => '', 'schema_general_feedback_desc' => '',
+            'schema_explanation_desc' => '', 'schema_strategy_desc' => '', 'schema_criterion_desc' => '',
+        ];
+
+        foreach ($strings as $key => $value) {
             $strings[$key] = get_string($key, 'assignfeedback_recitannotation');
         }
 
-        $script = "if (window.loadRecitAnnotationReactApp) {
-                        window.loadRecitAnnotationReactApp({
-                            assignment: " . json_encode($grade->assignment) . ",
-                            submission: " . json_encode($data->submission) . ",
-                            attemptnumber: " . json_encode($grade->attemptnumber) . ",
-                            userid: " . json_encode($userid) . ",
-                            aiApi: ". json_encode(\recitannotation\Options::isAiApiActive()) .",
-                            aiModel: ". json_encode(\recitannotation\Options::getAiModel()) .",
-                            documentationUrl: ".json_encode(\recitannotation\Options::getUrlDocumentation()) ."
-                        },
-                        ". json_encode($strings) .");
-                    }";
+        $jsondata = [
+            'assignment' => $grade->assignment,
+            'submission' => $data->submission,
+            'attemptnumber' => $grade->attemptnumber,
+            'userid' => $userid,
+            'aiApi' => \recitannotation\Options::is_ai_api_active(),
+            'aiModel' => \recitannotation\Options::get_ai_model(),
+            'documentationUrl' => \recitannotation\Options::get_url_documentation(),
+        ];
 
-        // if it is in debug mode, then avoid require() to load app React in dev mode
-        if($CFG->debug < DEBUG_DEVELOPER){
+        $script = 'if (window.loadRecitAnnotationReactApp) {' .
+            'window.loadRecitAnnotationReactApp(' . json_encode($jsondata) . ', ' . json_encode($strings) . ');' .
+            '}';
+
+        // If it is in debug mode, then avoid require() to load app React in dev mode.
+        if ($CFG->debug < DEBUG_DEVELOPER) {
             $script = "require(['recitannotation'], function () { $script });";
         }
-        
+
         $html .= html_writer::script($script);
 
         $group[] = $mform->createElement('static', '', '', $html);
 
-        $mform->addGroup($group, 'assignfeedbackrecitannotation_group', $this->get_name(), '', false, array('class' => 'has-popout invisible'));
+        $mform->addGroup(
+            $group,
+            'assignfeedbackrecitannotation_group',
+            $this->get_name(),
+            '',
+            false,
+            ['class' => 'has-popout invisible']
+        );
 
         return true;
     }
@@ -146,14 +136,14 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
      * @param bool $showviewlink Set to true to show a link to view the full feedback
      * @return string
      */
-    public function view_summary(stdClass $grade, & $showviewlink) {
+    public function view_summary(stdClass $grade, &$showviewlink) {
         global $DB, $USER;
-       
+
         $showviewlink = false;
 
-        $persistCtrl = \recitannotation\PersistCtrl::getInstance($DB, $USER);
-        $data = $persistCtrl->getAnnotation($grade->assignment, $grade->userid, $grade->attemptnumber);
-        $criteriaList = $persistCtrl->getCriteriaList($grade->assignment);
+        $persistctrl = \recitannotation\PersistCtrl::get_instance($DB, $USER);
+        $data = $persistctrl->get_annotation($grade->assignment, $grade->userid, $grade->attemptnumber);
+        $criterialist = $persistctrl->get_criteria_list($grade->assignment);
 
         $html = "<div id='assignfeedback_recitannotation' class='bg-white p-2'>";
 
@@ -162,9 +152,9 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
         $data->occurrences = json_decode($data->occurrences);
         $html .= "<div class='d-flex flex-wrap'>";
 
-        foreach($criteriaList as $criterion){
+        foreach ($criterialist as $criterion) {
             $attr = $criterion->name;
-            if(!isset($data->occurrences->$attr)){
+            if (!isset($data->occurrences->$attr)) {
                 continue;
             }
 
@@ -174,12 +164,12 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
             $html .= "<span class='badge-criterion-counter'>" . s((string)$data->occurrences->$attr) . "</span>";
             $html .= "</span>";
         }
-        
-        $html .= "</div>";
 
         $html .= "</div>";
 
-        return $html;        
+        $html .= "</div>";
+
+        return $html;
     }
 
     /**
@@ -203,7 +193,7 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
         return true;
     }
 
-     /**
+    /**
      * Has the comment feedback been modified?
      *
      * @param stdClass $grade The grade object.
@@ -222,12 +212,13 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
      */
     public function is_empty(stdClass $grade) {
         global $DB, $USER;
-       
-        $persistCtrl = \recitannotation\PersistCtrl::getInstance($DB, $USER);
-        $data = $persistCtrl->getAnnotation($grade->assignment, $grade->userid, $grade->attemptnumber);
+
+        $persistctrl = \recitannotation\PersistCtrl::get_instance($DB, $USER);
+        $data = $persistctrl->get_annotation($grade->assignment, $grade->userid, $grade->attemptnumber);
 
         return ($data->id == 0);
     }
+
     /**
      * The assignment has been deleted - cleanup.
      *
@@ -235,9 +226,9 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
      */
     public function delete_instance() {
         global $DB, $USER;
-       
-        $persistCtrl = \recitannotation\PersistCtrl::getInstance($DB, $USER);
-        return $persistCtrl->deletePluginData($this->assignment->get_instance()->id);
+
+        $persistctrl = \recitannotation\PersistCtrl::get_instance($DB, $USER);
+        return $persistctrl->delete_plugin_data($this->assignment->get_instance()->id);
     }
 
     /**
@@ -248,8 +239,6 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
      * @return string - The html response
      */
     public function view_page($action) {
-        
-
         return 'view_page';
     }
 
@@ -260,7 +249,7 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
      * @return array The list of grading actions
      */
     public function get_grading_actions() {
-        return array('my_grading_action'=> 'my_grading_action');
+        return ['my_grading_action' => 'my_grading_action'];
     }
 
     /**

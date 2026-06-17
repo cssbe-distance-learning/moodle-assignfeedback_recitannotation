@@ -15,18 +15,45 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details for assignfeedback_recitannotation.
+ * Result wrapper returned by the WebApi service dispatcher.
  *
- * @package assignfeedback_recitannotation
+ * @package   assignfeedback_recitannotation
  * @copyright 2025 RECIT
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace recitannotation;
+
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026061201;
-$plugin->requires  = 2023100912.00; // Moodle 4.3.0.
-$plugin->supported = [403, 405];
-$plugin->component = 'assignfeedback_recitannotation';
-$plugin->release   = 'v1.5.0-stable';
-$plugin->maturity  = MATURITY_STABLE;
+/**
+ * Result wrapper returned by the WebApi service dispatcher.
+ */
+class WebApiResult {
+    /** @var bool */
+    public $success = false;
+
+    /** @var mixed */
+    public $data = null;
+
+    /** @var string */
+    public $msg = "";
+
+    /** @var string */
+    public $contenttype = 'json';
+
+    /**
+     * Constructor.
+     *
+     * @param bool $success
+     * @param mixed $data
+     * @param string $msg
+     * @param string $contenttype
+     */
+    public function __construct($success, $data = null, $msg = "", $contenttype = 'json') {
+        $this->success = $success;
+        $this->data = $data;
+        $this->msg = $msg;
+        $this->contenttype = $contenttype;
+    }
+}

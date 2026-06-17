@@ -94,7 +94,7 @@ class CriterionView extends Component{
                 <ButtonGroup className='d-block text-right'>
                     <Button variant='link'  onClick={this.onAdd}><FontAwesomeIcon icon={faPlus}/>{` ${$glVars.i18n.add_new_item}`}</Button>
                     <Button variant='link' onClick={this.onSelectFile}><FontAwesomeIcon icon={faUpload}/>{` ${$glVars.i18n.import_criteria}`}</Button>
-                    <a className='btn btn-link' href={`${Options.getGateway(true)}&service=exportCriteriaList&assignment=${$glVars.moodleData.assignment}`} target='_blank'>
+                    <a className='btn btn-link' href={`${Options.getGateway(true)}&service=export_criteria_list&assignment=${$glVars.moodleData.assignment}`} target='_blank'>
                         <FontAwesomeIcon icon={faDownload}/>{` ${$glVars.i18n.export_criteria}`}
                     </a>
                     <Button variant='link' className='text-danger' onClick={this.onDeleteAll}><FontAwesomeIcon icon={faTrash}/>{` ${$glVars.i18n.delete_all}`}</Button>

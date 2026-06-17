@@ -15,103 +15,104 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Printable list of comments for a given assignment.
  *
  * @package   assignfeedback_recitannotation
- * @copyright 2025 RÉCIT 
+ * @copyright 2025 RECIT
  * @license   {@link http://www.gnu.org/licenses/gpl-3.0.html} GNU GPL v3 or later
  */
 
 namespace recitannotation;
 
-require('../../../../../config.php');
-require_once dirname(__FILE__).'/PersistCtrl.php';
+require(dirname(__FILE__) . '/../../../../../config.php');
+require_once(dirname(__FILE__) . '/PersistCtrl.php');
 
 $assignment = required_param('assignment', PARAM_INT);
 $cmid = required_param('cmid', PARAM_INT);
 
 require_login();
 
-// Get the course module
+// Get the course module.
 $cm = get_coursemodule_from_id(null, $cmid, 0, false, MUST_EXIST);
 
-// Get the course that corresponds to the course module
+// Get the course that corresponds to the course module.
 $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
 
-// Set the page context
+// Set the page context.
 $PAGE->set_cm($cm, $course);
 
 $PAGE->set_context(\context_module::instance($cmid));
 
 $theme = \theme_config::load($PAGE->theme->name);
 
-$brandImage = "{$CFG->wwwroot}/mod/assign/feedback/recitannotation/pix/recit-logo.png";
-$customerLogo = $theme->setting_file_url('logo', 'logo');
-if(!empty($customerLogo)){
-    $brandImage = $customerLogo;
+$brandimage = "{$CFG->wwwroot}/mod/assign/feedback/recitannotation/pix/recit-logo.png";
+$customerlogo = $theme->setting_file_url('logo', 'logo');
+if (!empty($customerlogo)) {
+    $brandimage = $customerlogo;
 }
 
-$persistCtrl = PersistCtrl::getInstance($DB, $USER);
+$persistctrl = PersistCtrl::get_instance($DB, $USER);
 
-$isTeacher = $persistCtrl->hasTeacherAccess($assignment);
+$isteacher = $persistctrl->has_teacher_access($assignment);
 
-if(!$isTeacher){
+if (!$isteacher) {
     throw new \moodle_exception(get_string('access_denied', 'assignfeedback_recitannotation'));
 }
 
-$commentList = $persistCtrl->getCommentList($assignment);
+$commentlist = $persistctrl->get_comment_list($assignment);
 
-$pageTitle = sprintf("%s: %s", get_string('pluginname', 'assignfeedback_recitannotation'), get_string('comment_list', 'assignfeedback_recitannotation'));
-?>
+$pagetitle = sprintf(
+    "%s: %s",
+    get_string('pluginname', 'assignfeedback_recitannotation'),
+    get_string('comment_list', 'assignfeedback_recitannotation')
+);
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title><?php echo $pageTitle; ?></title>    
-    <link rel="stylesheet" type="text/css" href="<?php echo $CFG->wwwroot . "/theme/styles.php/{$CFG->theme}/{$CFG->themerev}_1/all"?>">
-    <link rel="stylesheet" type="text/css" href="<?php echo $CFG->wwwroot . "/mod/recitcahiertraces/css/report.css"; ?>">
-    <link rel="icon" href="../pix/recit-logo.png" />
-</head>
+$stylesheeturl = $CFG->wwwroot . "/theme/styles.php/{$CFG->theme}/{$CFG->themerev}_1/all";
+$reportcssurl = $CFG->wwwroot . "/mod/recitcahiertraces/css/report.css";
 
-<body>
-    <div class='Portrait cahier-traces-print-notes'>
-        <header class='Header'>
-            <div style='flex-grow: 1'>
-                <div class='Title'><?php echo get_string('pluginname', 'assignfeedback_recitannotation'); ?></div>
-                <div class='Subtitle'><?php echo sprintf("%s", get_string('comment_list', 'assignfeedback_recitannotation'));  ?></div>
-            </div>
-            <div class='Logo'><img src='<?php echo $brandImage; ?>' alt='brand logo'/></div>
-        </header>
-    <?php 
+echo '<!DOCTYPE html>';
+echo '<html>';
+echo '<head>';
+echo '<title>' . s($pagetitle) . '</title>';
+echo '<link rel="stylesheet" type="text/css" href="' . s($stylesheeturl) . '">';
+echo '<link rel="stylesheet" type="text/css" href="' . s($reportcssurl) . '">';
+echo '<link rel="icon" href="../pix/recit-logo.png" />';
+echo '</head>';
 
-        if(empty($commentList)){
-            echo "<h6>".get_string('no_data', 'assignfeedback_recitannotation')."</h6>";
-        }
-        else{
-            ?>
-                <table class="table table-sm table-striped table-bordered">
-                    <thead>
-                        <tr>
-                            <th><?php echo get_string('criterion', 'assignfeedback_recitannotation'); ?></th>    
-                            <th><?php echo get_string('comment', 'assignfeedback_recitannotation'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                            foreach($commentList as $item){
-                        ?>
-                            <tr>
-                                <td><?php echo s($item->description); ?></td>
-                                <td><?php echo s($item->comment); ?></td>
-                            </tr>
-                        <?php } ?>
-                    </tbody>
-                </table>
-        <?php } ?>
+echo "<body>";
+echo "<div class='Portrait cahier-traces-print-notes'>";
+echo "<header class='Header'>";
+echo "<div style='flex-grow: 1'>";
+echo "<div class='Title'>" . s(get_string('pluginname', 'assignfeedback_recitannotation')) . "</div>";
+echo "<div class='Subtitle'>" . s(get_string('comment_list', 'assignfeedback_recitannotation')) . "</div>";
+echo "</div>";
+echo "<div class='Logo'><img src='" . s($brandimage) . "' alt='brand logo'/></div>";
+echo "</header>";
 
-        <footer class="text-left mt-5">
-            <?php echo sprintf("%s: %s", get_string('printed_on', 'assignfeedback_recitannotation'), date('Y-m-d H:i:s')); ?>
-        </footer>
-    </div>
-</body>
+if (empty($commentlist)) {
+    echo "<h6>" . get_string('no_data', 'assignfeedback_recitannotation') . "</h6>";
+} else {
+    echo '<table class="table table-sm table-striped table-bordered">';
+    echo '<thead>';
+    echo '<tr>';
+    echo '<th>' . s(get_string('criterion', 'assignfeedback_recitannotation')) . '</th>';
+    echo '<th>' . s(get_string('comment', 'assignfeedback_recitannotation')) . '</th>';
+    echo '</tr>';
+    echo '</thead>';
+    echo '<tbody>';
+    foreach ($commentlist as $item) {
+        echo '<tr>';
+        echo '<td>' . s($item->description) . '</td>';
+        echo '<td>' . s($item->comment) . '</td>';
+        echo '</tr>';
+    }
+    echo '</tbody>';
+    echo '</table>';
+}
 
-</html>
+echo '<footer class="text-left mt-5">';
+echo s(sprintf("%s: %s", get_string('printed_on', 'assignfeedback_recitannotation'), date('Y-m-d H:i:s')));
+echo '</footer>';
+echo '</div>';
+echo '</body>';
+echo '</html>';

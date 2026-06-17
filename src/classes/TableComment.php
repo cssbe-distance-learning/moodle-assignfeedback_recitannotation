@@ -15,18 +15,27 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details for assignfeedback_recitannotation.
+ * DTO representing one row of the assignfeedback_recitannotation_comment table.
  *
- * @package assignfeedback_recitannotation
+ * @package   assignfeedback_recitannotation
  * @copyright 2025 RECIT
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace recitannotation;
+
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026061201;
-$plugin->requires  = 2023100912.00; // Moodle 4.3.0.
-$plugin->supported = [403, 405];
-$plugin->component = 'assignfeedback_recitannotation';
-$plugin->release   = 'v1.5.0-stable';
-$plugin->maturity  = MATURITY_STABLE;
+/**
+ * DTO representing one row of the assignfeedback_recitannotation_comment table.
+ */
+class TableComment {
+    /** @var int */
+    public $id = 0;
+
+    /** @var int */
+    public $criterionid = 0;
+
+    /** @var string */
+    public $comment = "";
+}
