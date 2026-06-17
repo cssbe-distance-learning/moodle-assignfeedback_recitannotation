@@ -20,7 +20,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['access_denied'] = 'Access Denied: You don't currently have permission to use this feature.';
+$string['access_denied'] = 'Access Denied: You don\'t currently have permission to use this feature.';
 $string['add_edit_annotation'] = 'Add/Modify an annotation';
 $string['add_edit_comment'] = 'Add/Modify a Comment';
 $string['add_edit_criterion'] = 'Add/Edit Criteria';
@@ -72,7 +72,7 @@ $string['default_prompt_ai'] = "You are a strict JSON extractor. Analyse the tex
     ">>>";
 $string['delete'] = 'Delete';
 $string['delete_all'] = 'Delete all';
-$string['delete_criterion'] = 'If there are comments linked to this criteria/criterion, they'll be deleted too.';
+$string['delete_criterion'] = 'If there are comments linked to this criteria/criterion, they\'ll be deleted too.';
 $string['description'] = 'Description';
 $string['documentation_download'] = 'Documentation and criteria download';
 $string['edit'] = 'Edit';

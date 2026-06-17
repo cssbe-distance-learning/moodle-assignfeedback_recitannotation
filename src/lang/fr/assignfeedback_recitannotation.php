@@ -20,18 +20,18 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['access_denied'] = 'Accès refusé: Vous n'avez actuellement pas l'autorisation d'utiliser cette fonctionnalité.';
+$string['access_denied'] = 'Accès refusé: Vous n\'avez actuellement pas l\'autorisation d\'utiliser cette fonctionnalité.';
 $string['add_edit_annotation'] = 'Ajouter/Modifier une annotation';
 $string['add_edit_comment'] = 'Ajouter/Modifier un commentaire';
 $string['add_edit_criterion'] = 'Ajouter/Modifier un critère';
 $string['add_edit_prompt_ai'] = "Ajouter/Modifier le Prompt à l'IA";
 $string['add_new_item'] = 'Ajouter un nouveau item';
 $string['ai_api_endpoint'] = 'Point de terminaison API IA';
-$string['ai_api_endpoint_desc'] = 'URL complète de l'API d'intelligence artificielle à laquelle Moodle doit envoyer les requêtes.';
+$string['ai_api_endpoint_desc'] = 'URL complète de l\'API d\'intelligence artificielle à laquelle Moodle doit envoyer les requêtes.';
 $string['ai_api_key'] = 'Clé API IA';
-$string['ai_api_key_desc'] = 'Clé secrète d'authentification fournie par le service d'intelligence artificielle. Elle permet à Moodle d'accéder de manière sécurisée à l'API.';
-$string['ai_model'] = 'Modèle d'IA';
-$string['ai_model_desc'] = 'Moteur d'IA utilisé pour analyser le texte et générer des corrections.';
+$string['ai_api_key_desc'] = 'Clé secrète d\'authentification fournie par le service d\'intelligence artificielle. Elle permet à Moodle d\'accéder de manière sécurisée à l\'API.';
+$string['ai_model'] = 'Modèle d\'IA';
+$string['ai_model_desc'] = 'Moteur d\'IA utilisé pour analyser le texte et générer des corrections.';
 $string['analysis_in_progress'] = 'Analyse en cours';
 $string['annotate'] = 'Annoter';
 $string['apply'] = "Appliquer";
@@ -138,4 +138,4 @@ $string['student_work_placeholder'] = 'Le travail remis par l\'élève s\'affich
 $string['time_elapsed'] = 'Temps écoulé';
 $string['undo'] = 'Défaire';
 $string['url_documentation'] = 'URL de la documentation';
-$string['url_documentation_desc'] = 'Ce lien permettra aux utilisateurs d'accéder facilement aux informations ou instructions complémentaires.';
+$string['url_documentation_desc'] = 'Ce lien permettra aux utilisateurs d\'accéder facilement aux informations ou instructions complémentaires.';
