@@ -310,34 +310,6 @@ abstract class AWebApi {
     }
 }
 
-/**
- * Moodle-specific WebApi dispatcher base class.
- */
-abstract class MoodleApi extends AWebApi {
-    /** @var \stdClass the signed-in user */
-    protected $signeduser = null;
-
-    /** @var \stdClass the current course */
-    protected $course = null;
-
-    /** @var \moodle_database the Moodle DB connection */
-    protected $dbconn = null;
-
-    /**
-     * Constructor.
-     *
-     * @param \moodle_database $db
-     * @param \stdClass $course
-     * @param \stdClass $user
-     */
-    public function __construct($db, $course, $user) {
-        $this->signeduser = $user;
-        $this->course = $course;
-        $this->dbconn = $db;
-        PersistCtrl::get_instance($db, $user);
-    }
-}
-
 register_shutdown_function(function () {
     return AWebApi::on_php_error();
 });

@@ -61,7 +61,8 @@ class assign_feedback_recitannotation extends assign_feedback_plugin {
 
         $data = $persistctrl->get_annotation($grade->assignment, $userid, $grade->attemptnumber);
 
-        $containerhtml = "<div id='assignfeedback_recitannotation' style='position: sticky; top: 0;' class='bg-white rounded'></div>";
+        $containerhtml = "<div id='assignfeedback_recitannotation' style='position: sticky; top: 0;'" .
+            " class='bg-white rounded'></div>";
         $group[] = $mform->createElement('static', '', '', $containerhtml);
 
         $html = html_writer::script('', "{$CFG->wwwroot}/mod/assign/feedback/recitannotation/react/build/index.js");

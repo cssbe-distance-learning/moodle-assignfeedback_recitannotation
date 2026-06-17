@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * DTO representing one row of the assignfeedback_recitannotation_comment table.
+ * Moodle-specific WebApi dispatcher base class.
  *
  * @package   assignfeedback_recitannotation
  * @copyright 2025 RECIT
@@ -24,16 +24,35 @@
 
 namespace recitannotation;
 
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/WebApi.php');
+require_once(__DIR__ . '/../PersistCtrl.php');
+
 /**
- * DTO representing one row of the assignfeedback_recitannotation_comment table.
+ * Moodle-specific WebApi dispatcher base class.
  */
-class TableComment {
-    /** @var int */
-    public $id = 0;
+abstract class MoodleApi extends AWebApi {
+    /** @var \stdClass the signed-in user */
+    protected $signeduser = null;
 
-    /** @var int */
-    public $criterionid = 0;
+    /** @var \stdClass the current course */
+    protected $course = null;
 
-    /** @var string */
-    public $comment = "";
+    /** @var \moodle_database the Moodle DB connection */
+    protected $dbconn = null;
+
+    /**
+     * Constructor.
+     *
+     * @param \moodle_database $db
+     * @param \stdClass $course
+     * @param \stdClass $user
+     */
+    public function __construct($db, $course, $user) {
+        $this->signeduser = $user;
+        $this->course = $course;
+        $this->dbconn = $db;
+        PersistCtrl::get_instance($db, $user);
+    }
 }

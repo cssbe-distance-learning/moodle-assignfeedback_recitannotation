@@ -24,8 +24,6 @@
 
 namespace recitannotation;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Result wrapper returned by the WebApi service dispatcher.
  */

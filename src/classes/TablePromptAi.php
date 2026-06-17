@@ -24,8 +24,6 @@
 
 namespace recitannotation;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * DTO representing one row of the assignfeedback_recitannotation_promptai table.
  *
@@ -39,7 +37,7 @@ class TablePromptAi {
     /** @var int */
     public $assignment = 0;
 
-    // phpcs:ignore moodle.NamingConventions.ValidVariableName.MemberNameUnderscore
     /** @var string must match the "prompt_ai" DB column name. */
+    // phpcs:ignore moodle.NamingConventions.ValidVariableName.MemberNameUnderscore
     public $prompt_ai = "";
 }

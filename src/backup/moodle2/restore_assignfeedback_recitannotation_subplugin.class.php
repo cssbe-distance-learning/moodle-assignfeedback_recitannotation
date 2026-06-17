@@ -39,7 +39,7 @@ class restore_assignfeedback_recitannotation_subplugin extends restore_subplugin
      */
     protected function define_grade_subplugin_structure() {
         $paths = [];
-        // It is useless to check if userinfo is checked here because the assignment user data is checked before it gets to this point.
+        // Checking userinfo is unnecessary: the assignment user data is checked before reaching this point.
 
         $elementname = $this->get_namefor('annotation');
         $elementpath = $this->get_pathfor('/feedback_recitannot_annot');

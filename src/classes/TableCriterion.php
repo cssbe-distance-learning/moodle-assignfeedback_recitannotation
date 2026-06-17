@@ -24,8 +24,6 @@
 
 namespace recitannotation;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * DTO representing one row of the assignfeedback_recitannotation_crit table.
  *
@@ -51,7 +49,7 @@ class TableCriterion {
     /** @var int */
     public $sortorder = 0;
 
-    // phpcs:ignore moodle.NamingConventions.ValidVariableName.MemberNameUnderscore
     /** @var string must match the "instruction_ai" DB column name. */
+    // phpcs:ignore moodle.NamingConventions.ValidVariableName.MemberNameUnderscore
     public $instruction_ai = "";
 }

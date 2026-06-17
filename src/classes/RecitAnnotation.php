@@ -24,8 +24,6 @@
 
 namespace recitannotation;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * DTO representing one row of the assignfeedback_recitannotation table.
  */

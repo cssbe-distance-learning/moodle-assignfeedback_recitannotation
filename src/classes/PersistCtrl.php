@@ -27,7 +27,7 @@ namespace recitannotation;
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/user/externallib.php');
-require_once(__DIR__ . '/recitcommon/PersistCtrl.php');
+require_once(__DIR__ . '/recitcommon/MoodlePersistCtrl.php');
 require_once(__DIR__ . '/RecitAnnotation.php');
 require_once(__DIR__ . '/TableCriterion.php');
 require_once(__DIR__ . '/TableComment.php');
@@ -56,16 +56,6 @@ class PersistCtrl extends MoodlePersistCtrl {
             self::$instance = new self($mysqlconn, $signeduser);
         }
         return self::$instance;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param \moodle_database $mysqlconn
-     * @param \stdClass $signeduser
-     */
-    protected function __construct($mysqlconn, $signeduser) {
-        parent::__construct($mysqlconn, $signeduser);
     }
 
     /**
@@ -577,7 +567,11 @@ class PersistCtrl extends MoodlePersistCtrl {
      */
     public function resequence_sort_order($assignment) {
         // Get items ordered by current sortorder.
-        $items = $this->mysqlconn->get_records('assignfeedback_recitannotation_crit', ['assignment' => $assignment], 'sortorder ASC');
+        $items = $this->mysqlconn->get_records(
+            'assignfeedback_recitannotation_crit',
+            ['assignment' => $assignment],
+            'sortorder ASC'
+        );
 
         $i = 1;
         foreach ($items as $item) {

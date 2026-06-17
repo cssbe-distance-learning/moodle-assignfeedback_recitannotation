@@ -26,7 +26,7 @@ namespace recitannotation;
 
 require_once(dirname(__FILE__) . '/../../../../../../config.php');
 require_login(null, false, null, false, true);
-require_once(dirname(__FILE__) . '/recitcommon/WebApi.php');
+require_once(dirname(__FILE__) . '/recitcommon/MoodleApi.php');
 require_once(dirname(__FILE__) . '/PersistCtrl.php');
 require_once(dirname(__FILE__) . '/Options.php');
 
