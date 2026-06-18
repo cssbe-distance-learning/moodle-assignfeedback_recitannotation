@@ -293,7 +293,7 @@ abstract class AWebApi {
             foreach ($content as $row) {
                 $nbcols = count($row);
                 for ($icol = 0; $icol < $nbcols; $icol++) {
-                    $row[$icol] = utf8_decode($row[$icol]);
+                    $row[$icol] = mb_convert_encoding($row[$icol], 'ISO-8859-1', 'UTF-8');
                 }
                 fputcsv($fp, $row, $delimiter);
             }

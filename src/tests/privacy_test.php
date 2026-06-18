@@ -33,7 +33,7 @@ use core_privacy\local\metadata\types\database_table;
  *
  * @covers \assignfeedback_recitannotation\privacy\provider
  */
-class privacy_test extends \advanced_testcase {
+final class privacy_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);

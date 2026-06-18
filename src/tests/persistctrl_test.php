@@ -34,7 +34,7 @@ require_once($CFG->dirroot . '/mod/assign/feedback/recitannotation/locallib.php'
  *
  * @covers \recitannotation\PersistCtrl
  */
-class persistctrl_test extends \advanced_testcase {
+final class persistctrl_test extends \advanced_testcase {
     /** @var \stdClass */
     private $assign;
 
