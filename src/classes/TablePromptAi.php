@@ -38,6 +38,5 @@ class TablePromptAi {
     public $assignment = 0;
 
     /** @var string must match the "prompt_ai" DB column name. */
-    // phpcs:ignore moodle.NamingConventions.ValidVariableName.MemberNameUnderscore
-    public $prompt_ai = "";
+    public $prompt_ai = ""; // phpcs:ignore moodle.NamingConventions.ValidVariableName.MemberNameUnderscore
 }

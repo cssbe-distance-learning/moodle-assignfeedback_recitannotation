@@ -50,6 +50,5 @@ class TableCriterion {
     public $sortorder = 0;
 
     /** @var string must match the "instruction_ai" DB column name. */
-    // phpcs:ignore moodle.NamingConventions.ValidVariableName.MemberNameUnderscore
-    public $instruction_ai = "";
+    public $instruction_ai = ""; // phpcs:ignore moodle.NamingConventions.ValidVariableName.MemberNameUnderscore
 }

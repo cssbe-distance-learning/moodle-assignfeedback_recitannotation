@@ -24,8 +24,6 @@
 
 namespace recitannotation;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Base persistence controller providing cross-database SQL helpers.
  */
