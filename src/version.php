@@ -24,9 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026061201;
+$plugin->version   = 2026071400;
 $plugin->requires  = 2023100912.00; // Moodle 4.3.0.
 $plugin->supported = [403, 405];
 $plugin->component = 'assignfeedback_recitannotation';
-$plugin->release   = 'v1.5.0-stable';
+$plugin->release   = 'v1.5.1-stable';
 $plugin->maturity  = MATURITY_STABLE;
