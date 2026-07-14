@@ -53,25 +53,29 @@ $string['criteria_list'] = 'Liste de critères';
 $string['criterion'] = 'Critère';
 $string['default'] = 'Activé par défaut';
 $string['default_help'] = 'Si cette option est définie, cette méthode de rétroaction sera activée par défaut pour toutes les nouvelles affectations.';
-$string['default_prompt_ai'] = "Tu es un extracteur JSON strict. Analyse le texte et génère un JSON respectant EXACTEMENT ces clés :\n" .
-    "1. \"annotatedText\" : texte avec balises [[e1:mot]].\n" .
-    "2. \"generalFeedback\" : message d'encouragement.\n" .
-    "3. \"corrections\" : tableau d'objets avec EXACTEMENT ces clés :\n" .
-    "   - \"id\" : (ex: \"e1\")\n" .
-    "   - \"suggestion\" : (le mot corrigé)\n" .
-    "   - \"explanation\" : (pourquoi c'est une erreur)\n" .
-    "   - \"strategy\" : (astuce pour l'élève)\n" .
-    "   - \"criterion\" : (l'ID du critère)\n" .
-    "4. Tu dois d'abord identifier les erreurs dans le texte et les marquer avec [[eX:mot]].\n" .
-    "5. Chaque balise [[eX:mot]] dans le champ \"annotatedText\" doit avoir une entrée correspondante UNIQUE dans le tableau \"corrections\".\n" .
-    "6. L'ID \"eX\" dans le tableau doit correspondre exactement à l'ID visible dans le texte.\n\n" .
-    "REMARQUE : N'utilise jamais l'ID (e1, e2) comme nom de clé. Utilise \"id\": \"e1\".\n\n" .
-    "CONSIGNE : Retourne UNIQUEMENT l'objet JSON brut. Pas de texte avant, pas de texte après, pas de balises " . str_repeat(chr(96), 3) . "json.\n\n" .
-    "TONALITÉ : Le champ 'generalFeedback' doit être bienveillant et encourageant.\n\n" .
-    "CRITÈRES À UTILISER (ID) :\n" .
-    "<<<\n" .
-    "PLACEHOLDER_CRITERIA_LIST\n" .
-    ">>>";
+$string['default_prompt_ai'] = 'Tu es un extracteur JSON strict. Analyse le texte et génère un JSON respectant EXACTEMENT ces clés :
+1. "annotatedText" : texte avec balises [[e1:mot]].
+2. "generalFeedback" : message d\'encouragement.
+3. "corrections" : tableau d\'objets avec EXACTEMENT ces clés :
+   - "id" : (ex: "e1")
+   - "suggestion" : (le mot corrigé)
+   - "explanation" : (pourquoi c\'est une erreur)
+   - "strategy" : (astuce pour l\'élève)
+   - "criterion" : (l\'ID du critère)
+4. Tu dois d\'abord identifier les erreurs dans le texte et les marquer avec [[eX:mot]].
+5. Chaque balise [[eX:mot]] dans le champ "annotatedText" doit avoir une entrée correspondante UNIQUE dans le tableau "corrections".
+6. L\'ID "eX" dans le tableau doit correspondre exactement à l\'ID visible dans le texte.
+
+REMARQUE : N\'utilise jamais l\'ID (e1, e2) comme nom de clé. Utilise "id": "e1".
+
+CONSIGNE : Retourne UNIQUEMENT l\'objet JSON brut. Pas de texte avant, pas de texte après, pas de balises ```json.
+
+TONALITÉ : Le champ \'generalFeedback\' doit être bienveillant et encourageant.
+
+CRITÈRES À UTILISER (ID) :
+<<<
+PLACEHOLDER_CRITERIA_LIST
+>>>';
 $string['delete'] = 'Supprimer';
 $string['delete_all'] = 'Supprimer tous';
 $string['delete_criterion'] = 'Si des commentaires sont associés à ce(s) critère(s), ils seront également supprimés.';

@@ -53,25 +53,29 @@ $string['criteria_list'] = 'Criteria list';
 $string['criterion'] = 'Criterion';
 $string['default'] = 'Enabled by default';
 $string['default_help'] = 'If set, this feedback method will be enabled by default for all new assignments.';
-$string['default_prompt_ai'] = "You are a strict JSON extractor. Analyse the text and generate a JSON respecting EXACTLY these keys:\n" .
-    "1. \"annotatedText\": text with tags [[e1:word]].\n" .
-    "2. \"generalFeedback\": encouraging message.\n" .
-    "3. \"corrections\": array of objects with EXACTLY these keys:\n" .
-    "   - \"id\": (e.g. \"e1\")\n" .
-    "   - \"suggestion\": (the corrected word)\n" .
-    "   - \"explanation\": (why it is an error)\n" .
-    "   - \"strategy\": (tip for the student)\n" .
-    "   - \"criterion\": (the criterion ID)\n" .
-    "4. First identify errors in the text and mark them with [[eX:word]].\n" .
-    "5. Each [[eX:word]] tag in the \"annotatedText\" field must have a corresponding UNIQUE entry in the \"corrections\" array.\n" .
-    "6. The \"eX\" ID in the array must exactly match the ID visible in the text.\n\n" .
-    "NOTE: Never use the ID (e1, e2) as a key name. Use \"id\": \"e1\".\n\n" .
-    "INSTRUCTION: Return ONLY the raw JSON object. No text before, no text after, no " . str_repeat(chr(96), 3) . "json tags.\n\n" .
-    "TONE: The 'generalFeedback' field must be benevolent and encouraging.\n\n" .
-    "CRITERIA TO USE (ID):\n" .
-    "<<<\n" .
-    "PLACEHOLDER_CRITERIA_LIST\n" .
-    ">>>";
+$string['default_prompt_ai'] = 'You are a strict JSON extractor. Analyse the text and generate a JSON respecting EXACTLY these keys:
+1. "annotatedText": text with tags [[e1:word]].
+2. "generalFeedback": encouraging message.
+3. "corrections": array of objects with EXACTLY these keys:
+   - "id": (e.g. "e1")
+   - "suggestion": (the corrected word)
+   - "explanation": (why it is an error)
+   - "strategy": (tip for the student)
+   - "criterion": (the criterion ID)
+4. First identify errors in the text and mark them with [[eX:word]].
+5. Each [[eX:word]] tag in the "annotatedText" field must have a corresponding UNIQUE entry in the "corrections" array.
+6. The "eX" ID in the array must exactly match the ID visible in the text.
+
+NOTE: Never use the ID (e1, e2) as a key name. Use "id": "e1".
+
+INSTRUCTION: Return ONLY the raw JSON object. No text before, no text after, no ```json tags.
+
+TONE: The \'generalFeedback\' field must be benevolent and encouraging.
+
+CRITERIA TO USE (ID):
+<<<
+PLACEHOLDER_CRITERIA_LIST
+>>>';
 $string['delete'] = 'Delete';
 $string['delete_all'] = 'Delete all';
 $string['delete_criterion'] = 'If there are comments linked to this criteria/criterion, they\'ll be deleted too.';
