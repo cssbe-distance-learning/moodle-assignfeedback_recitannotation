@@ -25,6 +25,7 @@
 namespace recitannotation;
 
 require_once(dirname(__FILE__) . '/../../../../../config.php');
+require_once($CFG->libdir . '/filelib.php');
 require_login(null, false, null, false, true);
 require_once(dirname(__FILE__) . '/recitcommon/MoodleApi.php');
 require_once(dirname(__FILE__) . '/PersistCtrl.php');
@@ -406,33 +407,16 @@ class WebApi extends MoodleApi {
 
             $this->can_user_access('a', $assignment);
 
-            // Replace these with your Azure details.
             $endpoint = Options::get_ai_api_endpoint();
             $apikey = Options::get_ai_api_key();
 
-            // Setup headers.
-            $headers = [
-                "Content-Type: application/json",
-                "api-key: $apikey",
-            ];
+            $curl = new \curl();
+            $curl->setHeader(['Content-Type: application/json', "api-key: $apikey"]);
+            $response = $curl->post($endpoint, json_encode($payload));
 
-            // Initialize cURL.
-            $ch = curl_init($endpoint);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-            // Execute request.
-            $response = curl_exec($ch);
-
-            if (curl_errno($ch)) {
-                $error = curl_error($ch);
-                unset($ch);
-                throw new Exception($error);
+            if ($curl->errno) {
+                throw new Exception($curl->error);
             }
-
-            unset($ch);
 
             return new WebApiResult(true, json_decode($response));
         } catch (Exception $ex) {
