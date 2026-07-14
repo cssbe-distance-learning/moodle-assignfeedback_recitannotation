@@ -65,6 +65,16 @@ class provider implements
             'privacy:metadata:assignfeedback_recitannotation'
         );
 
+        // When an AI endpoint is configured, the call_azure_ai service sends the student's
+        // submission text to that external service to generate annotation suggestions.
+        $collection->add_external_location_link(
+            'azure_ai_api',
+            [
+                'submissioncontent' => 'privacy:metadata:azure_ai_api:submissioncontent',
+            ],
+            'privacy:metadata:azure_ai_api'
+        );
+
         return $collection;
     }
 
