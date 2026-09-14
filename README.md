@@ -106,3 +106,6 @@ This plugin is distributed under the [GNU General Public License v3.0](LICENSE) 
 ## Credits
 
 Developed by [RÉCIT](https://recit.qc.ca) and [CSSBE](https://cssbe.gouv.qc.ca).
+
+## Marketplace Moodle
+This plugin is also available on the **Moodle Plugin Marketplace**: [https://marketplace.moodle.com/plugins/3859](https://marketplace.moodle.com/plugins/3859)
