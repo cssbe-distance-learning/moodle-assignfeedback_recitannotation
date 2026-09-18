@@ -103,7 +103,7 @@ export class InputColor extends Component {
             <div className={this.props.className} style={this.props.style}>
                 <Form.Control style={{padding: "5px"}} className='w-100' size={this.props.size} name={this.props.name} type="color" value={value} 
                                 onChange={this.onChange} onBlur={this.onBlur} disabled={this.props.disabled} />
-                {this.props.showRemoveFormat && <Button className="ml-1" size='sm' variant={'link'} onClick={this.onReset} title={"Enlever format"}><FontAwesomeIcon icon={faRemoveFormat}/></Button>}
+                {this.props.showRemoveFormat && <Button className="ms-1" size='sm' variant={'link'} onClick={this.onReset} title={"Enlever format"}><FontAwesomeIcon icon={faRemoveFormat}/></Button>}
             </div>
         return (main);
     }   

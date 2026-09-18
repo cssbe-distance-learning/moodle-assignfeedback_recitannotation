@@ -110,7 +110,7 @@ if (empty($commentlist)) {
     echo '</table>';
 }
 
-echo '<footer class="text-left mt-5">';
+echo '<footer class="text-start mt-5">';
 echo s(sprintf("%s: %s", get_string('printed_on', 'assignfeedback_recitannotation'), date('Y-m-d H:i:s')));
 echo '</footer>';
 echo '</div>';

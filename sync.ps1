@@ -1,5 +1,5 @@
 $from = "moodle-assignfeedback_recitannotation/src/*"
-$to = "shared/recitfad3/mod/assign/feedback/recitannotation/"
+$to = "shared/recitfad4/public/mod/assign/feedback/recitannotation/"
 $source = "./src";
 
 try {

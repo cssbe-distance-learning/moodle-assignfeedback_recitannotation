@@ -34,7 +34,7 @@ export class SettingsView extends Component{
                 <Button variant='link' onClick={() => this.props.onChangeView('annotation')} className='mb-5'>
                     <FontAwesomeIcon icon={faArrowLeft}/>{` ${$glVars.i18n.back_annotation_view}`}
                 </Button>
-                <a className='btn  btn-primary ml-1' target="_blank" href={$glVars.moodleData.documentationUrl}>
+                <a className='btn  btn-primary ms-1' target="_blank" href={$glVars.moodleData.documentationUrl}>
                     <FontAwesomeIcon icon={faInfoCircle}/>
                     <span>{" Documentation et téléchargement des critères"}</span>
                 </a>
@@ -91,7 +91,7 @@ class CriterionView extends Component{
 
         let main =  
             <>
-                <ButtonGroup className='d-block text-right'>
+                <ButtonGroup className='d-block text-end'>
                     <Button variant='link'  onClick={this.onAdd}><FontAwesomeIcon icon={faPlus}/>{` ${$glVars.i18n.add_new_item}`}</Button>
                     <Button variant='link' onClick={this.onSelectFile}><FontAwesomeIcon icon={faUpload}/>{` ${$glVars.i18n.import_criteria}`}</Button>
                     <a className='btn btn-link' href={`${Options.getGateway(true)}&service=export_criteria_list&assignment=${$glVars.moodleData.assignment}`} target='_blank'>
@@ -115,7 +115,7 @@ class CriterionView extends Component{
                                 <tr key={index}>
                                     <td title={item.name}>{item.description}</td>
                                     <td className='text-center align-middle'>
-                                        <Badge className='p-2 text-white ' style={{backgroundColor: item.backgroundcolor}}>{item.backgroundcolor}</Badge>
+                                        <span className='p-2 text-white badge ' style={{backgroundColor: item.backgroundcolor}}>{item.backgroundcolor}</span>
                                     </td>
                                     <td>{item.instruction_ai}</td>
                                     <td className='text-center'>
@@ -425,20 +425,20 @@ class CommentsView extends Component{
 
         let main = 
         <>
-            <Button variant='link' className='d-block ml-auto mb-4' onClick={this.onAdd}><FontAwesomeIcon icon={faPlus}/>{` ${$glVars.i18n.add_new_item}`}</Button>
+            <Button variant='link' className='d-block ms-auto mb-4' onClick={this.onAdd}><FontAwesomeIcon icon={faPlus}/>{` ${$glVars.i18n.add_new_item}`}</Button>
             <Table striped bordered size='sm'>
                 <thead>
                     <tr>
                         <th>
                             <div className='d-flex align-items-center'>
                                 <span>{$glVars.i18n.criterion}</span>
-                                <SortColumn className='ml-2' dataProvider={commentList} field='name' onSort={() => this.forceUpdate()}/>
+                                <SortColumn className='ms-2' dataProvider={commentList} field='name' onSort={() => this.forceUpdate()}/>
                             </div>
                         </th>
                         <th >
                             <div  className='d-flex align-items-center'>
                                 <span>{$glVars.i18n.comment}</span>
-                                <SortColumn className='ml-2' dataProvider={commentList} field='comment'  onSort={() => this.forceUpdate()}/>
+                                <SortColumn className='ms-2' dataProvider={commentList} field='comment'  onSort={() => this.forceUpdate()}/>
                             </div>
                         </th>
                         <th style={{width: 70}}></th>

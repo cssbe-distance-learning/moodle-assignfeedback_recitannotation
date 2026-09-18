@@ -12,7 +12,7 @@ import { MainView } from './views/MainView';
 import { AppWebApi } from './common/AppWebApi';
 
 class App extends Component {
-    static defaultProps = {
+    static defaultProps = { 
     };
 
     constructor(props) {

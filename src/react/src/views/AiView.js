@@ -474,7 +474,7 @@ export class PromptAiView extends Component{
 
         let main = 
         <>
-            <Button variant='link' className='d-block ml-auto mb-4' onClick={this.onEdit}><FontAwesomeIcon icon={faPencilAlt}/>{` ${$glVars.i18n.edit}`}</Button>
+            <Button variant='link' className='d-block ms-auto mb-4' onClick={this.onEdit}><FontAwesomeIcon icon={faPencilAlt}/>{` ${$glVars.i18n.edit}`}</Button>
             <div style={style}  dangerouslySetInnerHTML={{ __html: promptAi }}></div>
             {this.state.showModal && <ModalPromptAiForm onClose={this.onClose} data={this.state.data}/>}
         </>;
