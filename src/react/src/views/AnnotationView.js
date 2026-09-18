@@ -1,7 +1,7 @@
 ﻿
 import React, { Component } from 'react';
-import { Button, ButtonGroup, ButtonToolbar, Col, Form, Modal, Row, Table} from 'react-bootstrap';
-import {  faBroom, faChalkboard, faCog, faComment, faInfo, faInfoCircle, faPrint, faRedo, faSave, faTimes, faTrash, faUndo} from '@fortawesome/free-solid-svg-icons';
+import { Button, ButtonGroup, ButtonToolbar, Col, Form, Modal} from 'react-bootstrap';
+import {  faCog, faComment, faInfoCircle, faPrint, faRedo, faSave, faTimes, faTrash, faUndo} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { InputTextArea } from '../libs/components/InputTextArea';
 import {ComboBoxPlus} from '../libs/components/Components';
@@ -10,6 +10,7 @@ import Utils, { JsNx, UtilsString } from '../libs/utils/Utils';
 import 'bootstrap/dist/js/bootstrap.bundle.min'; // includes tooltip
 import { DlgConfirm } from '../libs/components/DlgConfirm';
 import { ModalAskAi } from './AiView';
+import { Tooltip } from 'bootstrap';
 
 export class AnnotationView extends Component {
     static defaultProps = {
@@ -149,10 +150,10 @@ export class AnnotationView extends Component {
                     </div>
                     <div className='d-flex flex-wrap w-100'>
                         <Col className='p-2' md={8}>
-                            {this.props.data !== null && 
-                                <div className='p-3 border rounded' ref={AnnotationView.refAnnotation} onMouseUp={this.onSelectionChange} onTouchEnd={this.onSelectionChange}
-                                dangerouslySetInnerHTML={{ __html: this.props.data.annotation }}></div>}
-
+                            {this.props.data !== null &&
+                                <AnnotationPanel data={this.props.data.annotation} onSelectionChange={this.onSelectionChange} />
+                            }
+                            
                             <ButtonGroup ref={this.refFloatingMenu} className='floating-menu'>
                                 <Button size='sm' onClick={this.onAnnotate}>
                                     <FontAwesomeIcon icon={faComment}/>{` ${$glVars.i18n.annotate}`}
@@ -214,7 +215,7 @@ export class AnnotationView extends Component {
             this.setState({showModalAnnotate: true});// Open modal for a new comment
             this.beforeDataChange();
         }
-    }
+    }   
 
     onAskIA(event){
         let that = this;
@@ -253,7 +254,7 @@ export class AnnotationView extends Component {
     refresh(){
         if(AnnotationView.refAnnotation.current === null){ return;}
 
-        // this.initTooltips();
+        this.initTooltips();
         this.updateCounters();
 
         // Gérer le clic sur le texte surligné
@@ -278,19 +279,20 @@ export class AnnotationView extends Component {
         return counter;
     }   
 
-    /*initTooltips() {
-        // This ensures only one tooltip instance exists.
-        $('[data-toggle="tooltip"]').each(function () {
-            const $el = $(this);
+    initTooltips() {
+        const elements = AnnotationView.refAnnotation.current?.querySelectorAll('[data-bs-toggle="tooltip"]') || [];
 
-            if (!$el.data('bs.tooltip')) {   // Only initialize if not already initialized
-                $el.tooltip({
+        for (let el of elements) {
+            if (!Tooltip.getInstance(el)) {
+                new Tooltip(el, {
                     trigger: 'hover',
-                    placement: 'auto', // Ajout de la position automatique,
+                    placement: 'auto',
+                    html: el.dataset.html === 'true',
+                    title: el.dataset.bsOriginalTitle || el.getAttribute('title') || '',
                 });
             }
-        });
-    }*/
+        }
+    }
 
     onClick(event){
         event.preventDefault(); // Empêche d'autres actions de clic
@@ -317,7 +319,7 @@ export class AnnotationView extends Component {
             floatingMenu.style.display = 'none';
         }
     }
-
+    
     beforeDataChange(){
         let stack = this.state.stack;
         stack.undo.push(AnnotationView.getHtml());
@@ -429,7 +431,7 @@ export class AnnotationView extends Component {
         el.removeEventListener("click", this.onClick)
         el.addEventListener('click', this.onClick);  
 
-        el.dataset.toggle = "tooltip";
+        el.dataset.bsToggle = "tooltip";
         el.dataset.criterion = criterionName;
         el.dataset.explanation = explanation;
         el.dataset.suggestion = suggestion;
@@ -445,31 +447,62 @@ export class AnnotationView extends Component {
         }
 
         //el.dataset.placement = 'auto';
-        el.dataset.originalTitle = `
+        el.dataset.bsOriginalTitle = `
             <div class='text-start '>
                 <div class='mb-2 pb-1 border-bottom border-secondary'>
                     <span class='badge me-2 text-uppercase text-white' >${criterion.description}</span>
         `;
 
         if(suggestion.length > 0){
-            el.dataset.originalTitle += `<strong class='text-white fs-6'>${suggestion}</strong>`;
+            el.dataset.bsOriginalTitle += `<strong class='text-white fs-6'>${suggestion}</strong>`;
         }
            
-        el.dataset.originalTitle += `
+        el.dataset.bsOriginalTitle += `
             </div>
             <div class='mb-2 text-light' style='font-weight: 100;'>${explanation}</div>
             `;
 
         if(strategy.length > 0){
-            el.dataset.originalTitle += `
+            el.dataset.bsOriginalTitle += `
             <div class='p-2 bg-black border border-secondary rounded small text-warning font-italic'>
                 <i class='fa-solid fa-lightbulb me-1'></i> ${strategy}
             </div>`
         }
         
-        el.dataset.originalTitle += `</div>`;   
+        el.dataset.bsOriginalTitle += `</div>`;   
         
         return el;
+    }
+}
+
+class AnnotationPanel extends Component{
+    static defaultProps = {        
+        data: null,
+        onSelectionChange: null
+    };
+
+    constructor(props){
+        super(props);
+
+        this.state = {};
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        if(this.props.data !== nextProps.data){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    render(){
+        let main = 
+            <div className='p-3 border rounded' ref={AnnotationView.refAnnotation} 
+            onMouseUp={this.props.onSelectionChange} onTouchEnd={this.props.onSelectionChange}
+            dangerouslySetInnerHTML={{ __html: this.props.data }}></div>;
+
+        return main;
     }
 }
 
