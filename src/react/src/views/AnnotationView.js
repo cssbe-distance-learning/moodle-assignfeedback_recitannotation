@@ -287,7 +287,7 @@ export class AnnotationView extends Component {
                 new Tooltip(el, {
                     trigger: 'hover',
                     placement: 'auto',
-                    html: el.dataset.html === 'true',
+                    html: el.dataset.bsHtml === 'true',
                     title: el.dataset.bsOriginalTitle || el.getAttribute('title') || '',
                 });
             }
@@ -436,7 +436,7 @@ export class AnnotationView extends Component {
         el.dataset.explanation = explanation;
         el.dataset.suggestion = suggestion;
         el.dataset.strategy = strategy;
-        el.dataset.html = "true";
+        el.dataset.bsHtml = "true";
         el.style.borderBottom = `3px solid ${criterion.backgroundcolor}`;
 
         if(aiFeedback){
