@@ -16,7 +16,7 @@ export class ToggleButtons extends Component {
       
     constructor(props){
         super(props);
-
+ 
         this.onChange = this.onChange.bind(this);
     }
 
@@ -26,9 +26,9 @@ export class ToggleButtons extends Component {
                 <ToggleButtonGroup className='flex-wrap' size={this.props.bsSize} type={this.props.type} name={this.props.name} defaultValue={this.props.defaultValue} value={this.props.value} onChange={this.onChange}>                                
                     {this.props.options.map((item, index) => {   
                         let onClick = (this.props.disabled ? null : (e) => this.onClick(item.value, e));
-                        
+
                         let element = 
-                            <BsToggleButton className='rounded m-1' key={index} variant={(this.props.value.includes(item.value) ? "primary" : "light")} onClick={onClick} value={item.value} disabled={this.props.disabled}>
+                            <BsToggleButton  id={`togglebtn-${this.props.name || 'tb'}-${index}`} className='rounded m-1' key={index} variant={(this.props.value.includes(item.value) ? "primary" : "light")} onClick={onClick} value={item.value} disabled={this.props.disabled}>
                                 {item.text}
                             </BsToggleButton>;
                         return (element);
