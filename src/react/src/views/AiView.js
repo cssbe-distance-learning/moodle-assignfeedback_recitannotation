@@ -79,14 +79,14 @@ export class ModalAskAi extends Component{
         
         // get student text here to avoid loosing HTML tags
         let studentText = `${$glVars.i18n.msg_ai_student_text_prefix}${AnnotationView.getHtml()}`;
-
+//temperature: 0.7,
         let payload = {
             model: $glVars.moodleData.aiModel,    
             input: [
                 { type: "message", role: "system", content: prompt },
                 { type: "message", role: "user", content: studentText }
             ],
-            temperature: 0.7,
+            
             max_output_tokens: 5000,
             text: {
                 format:{
