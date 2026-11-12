@@ -58,9 +58,21 @@ Go to **Site administration → Plugins → Activity modules → Assignment → 
 
 The AI assistant features are hidden in the interface when the endpoint or key are not configured.
 
-### AI API compatibility
+### Deploying and Configuring an AI Model in Microsoft AI Foundry
 
-The plugin sends POST requests with a JSON payload and an `api-key` header, which is compatible with **Azure OpenAI** deployments. Any API that accepts the same request format will work.
+Follow these steps to deploy and configure the AI model for use with the **RÉCIT Annotation Feedback** plugin in Moodle:
+
+1. Go to [ai.azure.com](https://ai.azure.com).
+2. Click **Create a project**.
+3. Enter and/or select the resource names.
+4. Navigate to the **Models** menu and click **Deploy a base model**.
+5. Search for and select the desired model (`gpt-5-mini` recommended as of April 2026) and click **Deploy with custom settings**.
+6. Configure the **Tokens per minute rate limit** (set to `200,000` as of April 2026).
+7. Under the **Model details** tab, copy down the **Target URI**, **Key**, and **Name**.
+8. Paste these details into the **RÉCIT Annotation Feedback** plugin settings in Moodle:
+   * **AI API Endpoint:** `Target URI`
+   * **AI API Key:** `Key`
+   * **Selected Model:** `Name`
 
 ## Usage
 
