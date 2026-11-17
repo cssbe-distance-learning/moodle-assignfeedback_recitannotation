@@ -88,6 +88,9 @@ export class ModalAskAi extends Component{
             ],
             
             max_output_tokens: 5000,
+            reasoning:{
+                'effort':'minimal', // Options: 'minimal', 'low', 'medium', 'high'
+            },
             text: {
                 format:{
                     type: "json_schema",                    
@@ -148,6 +151,35 @@ export class ModalAskAi extends Component{
     onCallAiResult(result, callback = null){
         if(!result.success){
             $glVars.feedback.showError($glVars.i18n.pluginname, result.msg);
+            return;
+        }
+
+        /*result.data = {
+            incomplete_details: {reason: "max_output_tokens"},
+            reasoning: {context: "current_turn", effort: "medium", mode: "standard", summary: null},
+            max_output_tokens: 5000,
+            status: "incomplete"
+        }*/
+
+        // prepare AI reponse to handle incomplete_details
+        // on tech ai send, select max_output_tokens (with max) and 'reasoning' => [
+        //    'effort' => 'low', // Options: 'minimal', 'low', 'medium', 'high'
+        //  ],
+
+        if(result.data.status === "incomplete"){
+            const reason = result.data?.incomplete_details?.reason || 'inconnue';
+            const maxTokens = result.data?.max_output_tokens ?? 'N/D';
+            const effort = result.data?.reasoning?.effort ?? 'N/D';
+
+            $glVars.feedback.showError($glVars.i18n.pluginname, 
+                `La réponse générée est incomplète.<br/>
+                <small class="text-muted">Raison technique : <code>${reason}</code></small>
+                <hr class="my-2"/>
+                <strong>Paramètres utilisés :</strong><br/>
+                &bull; Limite de jetons (<em>max_output_tokens</em>) : <code>${maxTokens}</code><br/>
+                &bull; Niveau de réflexion (<em>reasoning</em>) : <code>${effort}</code>`
+            );
+            console.log(result.data);
             return;
         }
 
